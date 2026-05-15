@@ -1,0 +1,23 @@
+---
+interface Props {
+  title?: string;
+  status?: string;
+  variant?: 'hero' | 'panel';
+}
+
+const { title = '~/', status, variant = 'panel' } = Astro.props;
+const wrapClass = variant === 'hero' ? 'hero-terminal' : 'terminal-preview';
+---
+
+<div class={wrapClass}>
+  <div class="terminal-header">
+    <div class="terminal-dots">
+      <span></span><span></span><span></span>
+    </div>
+    <div class="terminal-title">{title}</div>
+    {status && <div class="terminal-status">{status}</div>}
+  </div>
+  <div class="terminal-body">
+    <slot />
+  </div>
+</div>

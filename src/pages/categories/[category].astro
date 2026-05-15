@@ -1,0 +1,55 @@
+---
+import { getCollection } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleList from '../../components/ArticleList.astro';
+
+export const getStaticPaths = (async () => {
+  const categories = [
+    { slug: 'essays', value: 'essay', label: 'essays', tagline: 'long-form arguments' },
+    { slug: 'patterns', value: 'pattern', label: 'patterns', tagline: 'reusable techniques' },
+    { slug: 'guides', value: 'guide', label: 'guides', tagline: 'walk-through references' },
+  ] as const;
+
+  return categories.map((c) => ({
+    params: { category: c.slug },
+    props: { category: c },
+  }));
+}) satisfies GetStaticPaths;
+
+const { category } = Astro.props;
+
+const articles = (await getCollection('articles', (e) => !e.data.draft && e.data.category === category.value)).sort(
+  (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime(),
+);
+---
+
+<BaseLayout
+  title={category.label}
+  description={`All ${category.label} from ClaudeStack — ${category.tagline}.`}
+>
+  <section class="articles-section">
+    <div class="container">
+      <div class="section-head">
+        <div class="section-head-left">
+          <div class="section-head-meta">CATEGORY · {articles.length} REPORTS</div>
+          <h2><span class="accent">{category.label}</span></h2>
+        </div>
+        <div class="section-head-filters">
+          <a class="filter-pill" href="/articles">all</a>
+          <a class={`filter-pill ${category.slug === 'essays' ? 'active' : ''}`} href="/categories/essays">essays</a>
+          <a class={`filter-pill ${category.slug === 'patterns' ? 'active' : ''}`} href="/categories/patterns">patterns</a>
+          <a class={`filter-pill ${category.slug === 'guides' ? 'active' : ''}`} href="/categories/guides">guides</a>
+        </div>
+      </div>
+
+      {articles.length > 0 ? (
+        <ArticleList articles={articles} />
+      ) : (
+        <p style="font-family: var(--mono); color: var(--text-dim); padding: 24px; border: 1px solid var(--line);">
+          <span style="color: var(--green);">$</span> ls categories/{category.slug}/ → <span style="color: var(--text-faint);">no entries yet</span>
+        </p>
+      )}
+    </div>
+  </section>
+</BaseLayout>

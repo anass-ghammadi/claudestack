@@ -1,0 +1,46 @@
+---
+// Adds a "copy" button to every <pre> Shiki block on the page.
+// Render this component once inside ArticleLayout (or anywhere prose lives).
+---
+
+<script>
+  function init() {
+    document.querySelectorAll<HTMLElement>('.prose pre').forEach((pre) => {
+      if (pre.parentElement?.classList.contains('code-block-wrap')) return;
+
+      const wrap = document.createElement('div');
+      wrap.className = 'code-block-wrap';
+      pre.parentNode?.insertBefore(wrap, pre);
+      wrap.appendChild(pre);
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'copy-btn';
+      btn.textContent = 'copy';
+      btn.setAttribute('aria-label', 'Copy code');
+
+      btn.addEventListener('click', async () => {
+        const code = pre.querySelector('code')?.innerText ?? pre.innerText;
+        try {
+          await navigator.clipboard.writeText(code);
+          btn.textContent = 'copied';
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.textContent = 'copy';
+            btn.classList.remove('copied');
+          }, 1500);
+        } catch {
+          btn.textContent = 'error';
+        }
+      });
+
+      wrap.appendChild(btn);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+</script>

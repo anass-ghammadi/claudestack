@@ -1,0 +1,147 @@
+---
+title: "SPEC-driven development for AI-assisted codebases"
+description: "A traceability protocol that survives past the six-month mark. The lightweight spec format that keeps Claude-generated code from rotting under its own context."
+pubDate: 2026-05-08
+category: pattern
+tags: ["claude-code", "spec-driven", "architecture", "traceability"]
+featured: false
+faq:
+  - question: "How is this different from a regular design doc?"
+    answer: "A design doc lives in a wiki and goes stale. A SPEC lives next to the code it specifies, gets diffed in PRs, and is the input both humans and Claude read before touching that area. The discipline is enforcing that the SPEC and the code can never diverge silently."
+  - question: "Doesn't this slow you down?"
+    answer: "On day one, yes — by maybe 20%. By month four, you've recouped that ten times over in not having to re-derive what some piece of code was supposed to do. The bigger the codebase, the steeper the payoff curve."
+  - question: "What if the spec and the code drift?"
+    answer: "That's the whole point of the protocol — drift becomes visible in a diff, which means it gets reviewed, which means you either update the spec or fix the code. Silent drift is what kills AI-assisted codebases. Loud drift is fine."
+relatedSlugs: ["01-orchestrator-pattern"]
+---
+
+The problem with letting Claude write a thousand lines a week is that, six months in, you have six thousand lines of code and no living memory of why any of it exists.
+
+The git log helps. The PR descriptions help. But the cognition that produced each block — the constraints, the tradeoffs, the explicit "don't refactor this until X" — is gone. It lived in a chat window that got compacted three times since.
+
+SPEC-driven development is the discipline of writing that cognition down, in a place where it stays load-bearing.
+
+## The format
+
+A SPEC is a short markdown file, lives in `specs/` next to the code it describes, and contains four sections — and only four:
+
+```markdown
+# SPEC: <thing>
+
+## Context
+Why does this exist? What problem? What constraints?
+
+## Interface
+The shape: function signatures, types, inputs, outputs.
+
+## Acceptance
+How do we know it works? Concrete, testable criteria.
+
+## Out of scope
+What this explicitly does not handle, and why.
+```
+
+That's it. No "Future considerations." No "Open questions" that never close. No diagrams unless the diagram is the thing.
+
+The discipline is not the format — the format is trivial. The discipline is that **the SPEC is written before the code, and updated whenever the code changes meaningfully**. Both the human and Claude read the SPEC before touching the code. Both write to it after.
+
+## Why "spec before code" is non-negotiable for AI assistance
+
+When you ask Claude to add a feature without a spec, Claude reads the existing code and infers what the system was supposed to do. Most of the time it's right. Some of the time it's confidently wrong, in ways that take a week to discover because the tests still pass.
+
+When you ask Claude to add a feature with a spec, the inference is bounded. The spec says "out of scope: handling concurrent writes." Claude doesn't try to handle them. The spec says "interface: must be idempotent." Claude makes it idempotent. The cognition transfers because it's written down.
+
+The cost is one prompt. The savings are the bug you didn't ship.
+
+## The traceability invariant
+
+Every meaningful module has exactly one SPEC. Every SPEC describes exactly one module. The mapping lives in the directory structure:
+
+```
+src/
+  trading/
+    order_router.py
+specs/
+  trading/
+    order_router.spec.md
+```
+
+Mirror trees. When `src/trading/order_router.py` doesn't have a sibling spec, that's a violation, caught by a pre-commit hook that fails the commit. When `specs/trading/foo.spec.md` doesn't have a corresponding source file, also a violation.
+
+The hook is twelve lines of Python. It pays for itself the first time it catches an "oh, I forgot the spec" before the PR opens.
+
+## How Claude reads it
+
+The orchestrator's spec session writes the spec. The dev session reads `specs/trading/order_router.spec.md` *before reading the code*, and is told explicitly: "the spec is the contract. If the code disagrees with the spec, the spec wins."
+
+This is the inverse of the default behaviour where Claude treats the existing code as the source of truth. Existing code is a snapshot of how we got here, not what we meant. Spec is what we meant.
+
+Result: when Claude proposes a change that the spec forbids, it surfaces that explicitly — "the spec says X is out of scope, but doing this naturally would touch X. Should I update the spec, or work around it?" This is the question you want, asked early, instead of buried in a 500-line diff three weeks from now.
+
+## What "meaningful change" means
+
+You do not update the spec for typo fixes, log-level changes, or import reorganisation. You update it when:
+
+- A new acceptance criterion needs to be added (or removed)
+- The interface signature changes
+- Something previously out-of-scope is now in scope
+- A constraint in Context is no longer true
+
+Heuristic: if the change would surprise the person who wrote the spec a year from now, update the spec. If it wouldn't, don't.
+
+The PR template enforces this with a checkbox: "Spec updated, or N/A". Honest "N/A" is fine. Lying gets caught in review.
+
+## What it looks like in practice
+
+A real spec from the trading system, slightly redacted:
+
+```markdown
+# SPEC: order_router.route_order
+
+## Context
+Routes a single Order through risk checks → venue selection → submission.
+Called once per incoming order. Latency budget: 5ms p99 from receipt to send.
+Must be safe to call concurrently from multiple producer threads.
+
+## Interface
+async def route_order(order: Order) -> RouteResult
+
+Inputs:
+  - order: validated Order (validation happens upstream)
+
+Outputs:
+  - RouteResult.SUBMITTED(venue_id, ack)
+  - RouteResult.REJECTED(reason)
+  - RouteResult.HELD(reason, until)
+
+Raises: never. All failures returned as RouteResult.
+
+## Acceptance
+- Risk-check failure produces REJECTED, never raises
+- Unknown venue produces HELD with reason="venue_unavailable"
+- Concurrent calls do not interleave on shared state
+- p99 latency under 5ms in load test (10k orders/sec, 4 producers)
+
+## Out of scope
+- Order validation (handled by validator.py before this layer)
+- Position tracking (handled by position_book.py)
+- Multi-leg orders (separate spec, see multi_leg.spec.md)
+```
+
+Forty lines. Reading them takes ninety seconds. Skipping them costs hours.
+
+## Failure modes
+
+Two ways this protocol degrades:
+
+**Spec rot** — specs go unread, then go unupdated, then become lies. Counter: review them in PRs the same way you review code. If the spec hasn't been opened in three months and the code has changed, that's a smell.
+
+**Spec inflation** — specs grow to cover every edge case, every option, every consideration. Counter: when a spec passes one printed page, split the module. The page limit is the architectural pressure that keeps modules small.
+
+## When not to use it
+
+Throwaway scripts. One-off migrations. Anything you'll delete within the week. The overhead isn't worth it.
+
+Production code that will be edited by someone other than its author six months from now — including by Claude in another session — pays for the spec the first time someone needs to know what it was supposed to do.
+
+The whole protocol is forty lines of conventions and twelve lines of pre-commit hook. It is not a framework. It is a discipline. Like every discipline in software, it is annoying for the first month and load-bearing forever after.

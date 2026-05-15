@@ -1,0 +1,48 @@
+---
+import Logo from './Logo.astro';
+import { siteConfig } from '../lib/site-config';
+
+const year = new Date().getFullYear();
+---
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand-col">
+        <Logo variant="footer" />
+        <p class="footer-desc">{siteConfig.description}</p>
+      </div>
+      <div class="footer-col">
+        <h4>read</h4>
+        <ul>
+          {siteConfig.footerColumns.read.map((item) => (
+            <li><a href={item.href}>{item.label}</a></li>
+          ))}
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>shop</h4>
+        <ul>
+          {siteConfig.footerColumns.shop.map((item) => (
+            <li><a href={item.href}>{item.label}</a></li>
+          ))}
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>elsewhere</h4>
+        <ul>
+          {siteConfig.footerColumns.elsewhere.map((item) => (
+            <li><a href={item.href}>{item.label}</a></li>
+          ))}
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="left">
+        <span>© {year} [{siteConfig.name}]</span>
+        <span>{siteConfig.version}</span>
+      </div>
+      <span>built with care</span>
+    </div>
+  </div>
+</footer>

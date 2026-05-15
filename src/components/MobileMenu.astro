@@ -1,0 +1,58 @@
+---
+import { siteConfig } from '../lib/site-config';
+---
+
+<div class="nav-mobile-overlay" id="navOverlay"></div>
+<aside class="nav-mobile" id="navMobile" aria-label="Mobile menu">
+  {siteConfig.navLinks.map((link) => (
+    <a href={link.href}>{link.label}</a>
+  ))}
+  <a href="/articles">archive</a>
+  <a href="#newsletter" class="mobile-cta">SUBSCRIBE</a>
+  <div class="nav-mobile-meta">
+    <span>{siteConfig.stats.subs} subscribers</span>
+    <span>{siteConfig.version} — online</span>
+  </div>
+</aside>
+
+<script>
+  const toggle = document.getElementById('navToggle');
+  const menu = document.getElementById('navMobile');
+  const overlay = document.getElementById('navOverlay');
+
+  if (toggle && menu && overlay) {
+    const openMenu = () => {
+      toggle.classList.add('active');
+      menu.classList.add('active');
+      overlay.classList.add('active');
+      document.body.classList.add('menu-open');
+      toggle.setAttribute('aria-label', 'Close menu');
+      toggle.setAttribute('aria-expanded', 'true');
+    };
+
+    const closeMenu = () => {
+      toggle.classList.remove('active');
+      menu.classList.remove('active');
+      overlay.classList.remove('active');
+      document.body.classList.remove('menu-open');
+      toggle.setAttribute('aria-label', 'Open menu');
+      toggle.setAttribute('aria-expanded', 'false');
+    };
+
+    toggle.addEventListener('click', () => {
+      menu.classList.contains('active') ? closeMenu() : openMenu();
+    });
+
+    overlay.addEventListener('click', closeMenu);
+
+    menu.querySelectorAll('a').forEach((link) => {
+      link.addEventListener('click', closeMenu);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && menu.classList.contains('active')) {
+        closeMenu();
+      }
+    });
+  }
+</script>

@@ -1,0 +1,40 @@
+---
+interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+interface Props {
+  items: FaqItem[];
+}
+
+const { items } = Astro.props;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: items.map((item) => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: item.answer,
+    },
+  })),
+};
+---
+
+{items.length > 0 && (
+  <section class="faq-section" aria-label="Frequently asked questions">
+    <div class="faq-section-head">faq</div>
+    <div class="faq-list">
+      {items.map((item) => (
+        <details class="faq-item">
+          <summary>{item.question}</summary>
+          <div class="faq-answer">{item.answer}</div>
+        </details>
+      ))}
+    </div>
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  </section>
+)}

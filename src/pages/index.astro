@@ -1,0 +1,44 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero.astro';
+import Marquee from '../components/Marquee.astro';
+import StatsGrid from '../components/StatsGrid.astro';
+import ArticleList from '../components/ArticleList.astro';
+import ProductCard from '../components/ProductCard.astro';
+import Newsletter from '../components/Newsletter.astro';
+
+const articles = (await getCollection('articles', (e) => !e.data.draft)).sort(
+  (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime(),
+);
+
+const latest = articles.slice(0, 5);
+---
+
+<BaseLayout>
+  <Hero />
+  <Marquee />
+  <StatsGrid />
+
+  <section class="articles-section">
+    <div class="container">
+      <div class="section-head">
+        <div class="section-head-left">
+          <div class="section-head-meta">LATEST_OUTPUT · INDEX</div>
+          <h2>Recent <span class="accent">field reports</span></h2>
+        </div>
+        <div class="section-head-filters">
+          <a class="filter-pill active" href="/articles">all</a>
+          <a class="filter-pill" href="/categories/essays">essays</a>
+          <a class="filter-pill" href="/categories/patterns">patterns</a>
+          <a class="filter-pill" href="/categories/guides">guides</a>
+        </div>
+      </div>
+
+      <ArticleList articles={latest} startNum={articles.length} />
+    </div>
+  </section>
+
+  <ProductCard />
+  <Newsletter />
+</BaseLayout>

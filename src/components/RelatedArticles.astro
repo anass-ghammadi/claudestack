@@ -1,0 +1,26 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { formatDate } from '../lib/format-date';
+
+interface Props {
+  articles: CollectionEntry<'articles'>[];
+}
+
+const { articles } = Astro.props;
+---
+
+{articles.length > 0 && (
+  <section class="related" aria-label="Related articles">
+    <div class="related-head">related field reports</div>
+    <div class="related-grid">
+      {articles.map((a) => (
+        <a class="related-card" href={`/articles/${a.id}`}>
+          <div class="related-card-meta">
+            {a.data.category} · {formatDate(a.data.pubDate)}
+          </div>
+          <h4>{a.data.title}</h4>
+        </a>
+      ))}
+    </div>
+  </section>
+)}

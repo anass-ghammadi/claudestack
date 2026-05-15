@@ -1,0 +1,43 @@
+---
+import Terminal from './Terminal.astro';
+---
+
+<section class="hero">
+  <div class="container hero-inner">
+    <div>
+      <div class="hero-tag">
+        <span class="hero-tag-dot"></span>
+        NEW · MULTI-AGENT ORCHESTRATION
+      </div>
+      <h1>
+        <span class="small">// production notes</span>
+        Ship <span class="accent">serious</span><br />
+        software with<br />
+        <span class="hero-bracket">&lt;</span>claude code<span class="hero-bracket">/&gt;</span>
+      </h1>
+      <p class="hero-subtitle">
+        Field reports from shipping <span class="highlight">40,000+ lines</span> of production
+        Python with AI coding agents. No theory. No fluff. Just patterns that hold up under load.
+      </p>
+      <div class="hero-actions">
+        <a href="/articles" class="btn-primary">read_latest</a>
+        <a href="/articles" class="btn-secondary">$ ls archive/</a>
+      </div>
+    </div>
+
+    <Terminal variant="hero" title="~ /orchestrator" status="live">
+      <div class="terminal-line"><span class="terminal-prompt">$</span> claude --session spec</div>
+      <div class="terminal-line terminal-output">→ spec.session.active</div>
+      <div class="terminal-line"><span class="terminal-prompt">$</span> claude --session dev</div>
+      <div class="terminal-line terminal-output">→ dev.session.active</div>
+      <div class="terminal-line">&nbsp;</div>
+      <div class="terminal-line terminal-comment"># routes tasks</div>
+      <div class="terminal-line"><span class="terminal-keyword">def</span> <span class="terminal-success">route</span>(task):</div>
+      <div class="terminal-line">&nbsp;&nbsp;spec = Spec.<span class="terminal-arg">draft</span>(task)</div>
+      <div class="terminal-line">&nbsp;&nbsp;code = Dev.<span class="terminal-arg">build</span>(spec)</div>
+      <div class="terminal-line">&nbsp;&nbsp;<span class="terminal-keyword">return</span> Audit.<span class="terminal-arg">review</span>(code)</div>
+      <div class="terminal-line">&nbsp;</div>
+      <div class="terminal-line"><span class="terminal-prompt">$</span> route(task)<span class="terminal-cursor"></span></div>
+    </Terminal>
+  </div>
+</section>

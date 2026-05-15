@@ -1,0 +1,9 @@
+---
+interface Props {
+  category: 'essay' | 'pattern' | 'guide';
+}
+
+const { category } = Astro.props;
+---
+
+<span class={`article-cat ${category}`}>{category.toUpperCase()}</span>

@@ -1,0 +1,118 @@
+---
+title: "The orchestrator pattern: why one Claude session is never enough"
+description: "Six months of multi-session workflows on a production trading system. Why a single conversation collapses, and what to put in its place."
+pubDate: 2026-05-12
+category: essay
+tags: ["claude-code", "multi-agent", "architecture", "production"]
+featured: true
+faq:
+  - question: "Isn't this just multi-agent for the sake of multi-agent?"
+    answer: "No. The split is functional, not stylistic. Each session has a different prompt, different tools, and different success criteria. You'd run the same separation if the work were done by humans on a small team."
+  - question: "How do you avoid the sessions disagreeing with each other?"
+    answer: "The spec is the contract. The spec session writes it, the dev session implements against it, the audit session checks against it. Disagreement means the spec is wrong — fix the spec, regenerate from there."
+  - question: "Doesn't this multiply your token spend?"
+    answer: "Yes, roughly 2-3x for the orchestrated path. But you save more than that on debugging, rework, and the bugs that ship to prod when one session has to do everything at once."
+---
+
+A single Claude session is a brilliant intern who has been working for nine hours straight, has forgotten what they ate for breakfast, and is being asked to refactor your auth layer while also writing the migration script and replying to a Slack thread about the deploy.
+
+It will do the work. Some of it will even be correct. But the moment the context window starts to fill, you are watching cognition decay in real time — not a sudden failure, just a slow, polite drift away from the thing you actually asked for.
+
+After six months of running Claude Code on a production algorithmic trading system, I have stopped trying to make one session do everything. The pattern that replaced it is boring, and it works.
+
+## The collapse mode
+
+The failure shape is consistent. You ask for a feature. The session designs it, writes the code, writes the tests, runs them, fixes the type errors, runs them again, finds an edge case, patches it, and 80,000 tokens later it tells you it's done.
+
+Then you read the diff. The feature works. The tests pass. The architectural choice is wrong, the variable names drifted halfway through, the migration was never written, and there's a `# TODO: come back to this` three files away that was perfectly reasonable at the time but is now load-bearing.
+
+Nothing here is a bug in the model. The model did what you asked. The bug is that what you asked was actually four different jobs — design, implementation, verification, deployment — collapsed into one prompt because that was easier to type.
+
+When a single human does all four jobs, we call it a startup founder and we accept the tradeoffs. When a single Claude session does all four, we call it the default workflow and we wonder why the output is uneven.
+
+## The orchestrator
+
+The pattern, distilled:
+
+```python
+def route(task):
+    spec = Spec.draft(task)      # session 1: requirements + interface
+    code = Dev.build(spec)        # session 2: implementation
+    return Audit.review(code)     # session 3: invariants + tests
+```
+
+Three sessions. Three system prompts. Three different jobs. A thin orchestration layer above them whose only job is to pass artifacts between stages.
+
+It looks like overengineering until you've watched the alternative fail for the fourth time.
+
+### Session 1 — Spec
+
+The spec session never writes implementation code. Its system prompt forbids it. Its job is to produce one artifact: a spec document with acceptance criteria, an interface signature, and an explicit list of what's out of scope.
+
+The spec document goes into the repo. It's diffable. When the implementation drifts in two months, you know what was promised.
+
+This is the session most people skip, because typing "build me a thing" is faster than typing "draft the spec for the thing." It's also the session that prevents the next two from compounding mistakes.
+
+### Session 2 — Dev
+
+The dev session reads the spec and only the spec. It does not get the original task description, because the original task description is full of half-formed thoughts that the spec session has already resolved.
+
+Constrained input means constrained output. The dev session writes the code, writes the tests against the spec's acceptance criteria, and stops. It does not ship. It does not refactor neighbouring files unless the spec said to.
+
+When the dev session asks a question, the answer is always "go ask the spec session." That sounds like overhead. It is overhead. It is also how you find out, before you've written 400 lines, that the spec was ambiguous about what happens when the input is empty.
+
+### Session 3 — Audit
+
+The audit session does not write code, does not run tests, does not commit. It reads the diff and the spec and answers exactly one question: *does this implementation honour the spec?*
+
+If yes, ship. If no, the gap is documented and goes back to dev — or, more often, back to spec, because most "audit failures" are spec failures wearing a costume.
+
+The audit session is the one that catches the variable-name drift, the silent `try/except` that swallows the error you actually wanted to surface, and the architectural choice that technically passes the tests but won't survive contact with the production message bus.
+
+## Why this is not just multi-agent theatre
+
+The three sessions are not playing roles. They have different prompts, different tools, and different criteria for "done":
+
+| Session | Tools available | Output | "Done" means |
+|---|---|---|---|
+| Spec | Read, search, web fetch | `spec.md` | All acceptance criteria are testable |
+| Dev | Read, edit, write, run tests | Code + tests | Tests pass, types clean |
+| Audit | Read, run tests | Pass / fail report | Implementation matches spec |
+
+The dev session cannot ship without the audit. The audit cannot rewrite. The spec cannot run code. The constraint is the point.
+
+If you give all three sessions the same tools and prompts, you have not built an orchestrator. You have built a loop, and a loop with the same prompt three times will make the same mistake three times with more confidence each pass.
+
+## What you actually need to build
+
+The orchestrator is shorter than people expect:
+
+- A small Python or TypeScript script that calls each session in sequence
+- A shared `artifacts/` directory: `spec.md`, `diff.patch`, `audit.md`
+- A way to pause between stages so a human can intervene
+- Logging — every session, every prompt, every response, on disk
+
+That's it. No framework. No graph database. No agent registry.
+
+The temptation is to reach for LangGraph or CrewAI or whatever was on Hacker News last week. Resist. The orchestrator is a 200-line script. The framework is the source of bugs you'll spend a week debugging that have nothing to do with your actual work.
+
+## When to break the pattern
+
+The orchestrator pays for itself on tasks longer than ~30 minutes of single-session work. Below that, the overhead of writing a spec for a one-line config change is silly.
+
+A useful heuristic: if the diff will touch more than three files, run the orchestrator. If it's a typo fix, just edit the file.
+
+The other failure mode is using the orchestrator for exploratory work — research, prototyping, "what if we tried X." Specs presuppose you know what you want. If you don't yet, run a single exploratory session, then write the spec, then run the orchestrator on the spec.
+
+## What it actually buys you
+
+After six months and roughly 40,000 lines of production Python written this way:
+
+- **Bugs caught earlier.** The audit session finds spec gaps before they become merged code. The cost of fixing a spec is one prompt. The cost of fixing merged code is a revert plus an apology.
+- **Diffs you can read.** Each session's output is small enough to review. The audit forces a review whether you want one or not.
+- **Onboarding works.** New contributors read the spec, then the diff, then the audit. The "why" is not lost in the chat history.
+- **Token cost goes up ~2-3x.** Worth it. The bugs that don't ship to prod are worth more than the tokens.
+
+The pattern is not novel. It's the same separation of concerns we've used in software for forty years, applied to where the cognition lives. The only thing that changed is that the cognition can now be a Claude session instead of a person — and so the separation is something you have to enforce yourself, because the model will happily collapse all four jobs into one if you let it.
+
+Don't let it.

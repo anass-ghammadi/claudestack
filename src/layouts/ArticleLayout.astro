@@ -1,0 +1,60 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import type { MarkdownHeading } from 'astro';
+import BaseLayout from './BaseLayout.astro';
+import CategoryBadge from '../components/CategoryBadge.astro';
+import TableOfContents from '../components/TableOfContents.astro';
+import FAQ from '../components/FAQ.astro';
+import RelatedArticles from '../components/RelatedArticles.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import { formatDate } from '../lib/format-date';
+import { readingTime } from '../lib/reading-time';
+
+interface Props {
+  article: CollectionEntry<'articles'>;
+  rawBody: string;
+  headings: MarkdownHeading[];
+  related: CollectionEntry<'articles'>[];
+}
+
+const { article, rawBody, headings, related } = Astro.props;
+const { title, description, pubDate, updatedDate, category, tags, faq } = article.data;
+const time = readingTime(rawBody);
+---
+
+<BaseLayout title={title} description={description} article={article}>
+  <article class="article" data-pagefind-body>
+    <div class="container">
+      <div class="article-inner">
+        <div class="article-meta-top">
+          <CategoryBadge category={category} />
+          <span>{formatDate(pubDate)}</span>
+          {updatedDate && <span>updated {formatDate(updatedDate)}</span>}
+          {tags.slice(0, 3).map((tag) => (
+            <a href={`/tags/${tag}`}>#{tag}</a>
+          ))}
+        </div>
+
+        <h1 class="article-title">{title}</h1>
+        <p class="article-description">{description}</p>
+
+        <div class="article-meta-bottom">
+          <span>{time.label}</span>
+          <span>{time.words.toLocaleString()} words</span>
+        </div>
+
+        <TableOfContents headings={headings} />
+
+        <div class="prose">
+          <slot />
+        </div>
+
+        {faq && <FAQ items={faq} />}
+
+        <RelatedArticles articles={related} />
+      </div>
+    </div>
+  </article>
+
+  <CodeBlock />
+</BaseLayout>

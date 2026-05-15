@@ -1,0 +1,30 @@
+---
+import { siteConfig } from '../lib/site-config';
+
+interface Props {
+  variant?: 'nav' | 'footer';
+  href?: string;
+}
+
+const { variant = 'nav', href = '/' } = Astro.props;
+const className = variant === 'footer' ? 'footer-logo' : 'logo';
+---
+
+{
+  variant === 'footer' ? (
+    <div class={className}>
+      <span class="logo-bracket">[</span>{siteConfig.name}<span class="logo-bracket">]</span>
+    </div>
+  ) : (
+    <a href={href} class={className} aria-label={siteConfig.name}>
+      <span class="logo-bracket">[</span>{siteConfig.name}<span class="logo-bracket">]</span>
+    </a>
+  )
+}
+
+<style>
+  a.logo {
+    color: inherit;
+    text-decoration: none;
+  }
+</style>

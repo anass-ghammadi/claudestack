@@ -1,0 +1,102 @@
+---
+title: "Claude Code vs Cursor vs Cline: an honest year-long review"
+description: "Shipped real projects with all three for over twelve months. Where each one shines, where each one breaks, and which one I actually keep open."
+pubDate: 2026-05-03
+category: guide
+tags: ["claude-code", "cursor", "cline", "tooling", "review"]
+featured: false
+faq:
+  - question: "Are you affiliated with any of these companies?"
+    answer: "No. I pay for all three out of pocket and have never been sponsored, comped, or asked to write about them. The opinions are biased only in the direction of what shipped real code in production."
+  - question: "What about [other tool that just launched]?"
+    answer: "Probably haven't used it long enough to have an honest opinion. The bar for entry into this comparison is at least three months of daily use on a project that has paying users."
+  - question: "Which one would you recommend to someone starting today?"
+    answer: "Claude Code if you're already comfortable in a terminal and care about long-running agentic work. Cursor if you want a polished IDE first and AI second. Cline if you live in VS Code and want something free and good. The actual answer is that the choice matters less than people pretend."
+relatedSlugs: ["01-orchestrator-pattern"]
+---
+
+A year ago I started keeping a log entry every time I switched between Claude Code, Cursor, and Cline. The intent was a one-month comparison. It became a habit. There are 287 entries.
+
+This is the honest summary.
+
+## The setup
+
+All three tools have been used in anger on the same codebase: a Python algorithmic trading system, ~40k LoC, plus a TypeScript dashboard. Both are in production. Both have paying users. The codebase is realistic — has a CI pipeline, has tests, has surprises.
+
+Time split, roughly:
+- **Claude Code**: 60% of agentic work (long-running tasks, refactors, multi-file edits)
+- **Cursor**: 30% (interactive editing, exploration, "make this thing do that")
+- **Cline**: 10% (when I want a thing that lives in VS Code and stays out of the way)
+
+I keep all three installed. None of them is going away.
+
+## What Claude Code is good at
+
+Long-running, multi-step work where the success criterion is "the diff is right at the end" rather than "I want to see what each step looks like."
+
+The killer feature is that Claude Code treats the terminal as the interface, not as a sidekick to an editor. When I need to refactor something across 22 files, I don't want to see each edit pop up in my view. I want to come back in eight minutes and review the diff. That's exactly what it does.
+
+The other thing it does that the others don't: it works *with* git instead of around it. The model knows what's committed, what's staged, what's tracked. It commits things itself when asked. It leaves the working tree in a state I can read.
+
+### Where it breaks
+
+When the work is genuinely interactive — "let me see what you're thinking, walk me through it, change direction halfway." Claude Code is built for "go do this thing and come back." If I want to be in the loop on every micro-decision, I'm fighting the tool's grain.
+
+Also: the cost adds up. Long-running agentic work burns tokens. For exploratory or learning work, the bill grows fast.
+
+## What Cursor is good at
+
+Living inside the code while you write it. Cursor is an IDE first, AI second. The integration with the editor is the product. Tab completion that knows the rest of your codebase. Inline edits with diff preview. Composer for multi-file changes that you watch happen.
+
+When I'm debugging — when the loop is "look at this, try that, look again, try the other thing" — Cursor is the right tool. The AI lives where the code lives. Latency is low. Context switching cost is zero because there is no context switch.
+
+Cursor's other strength is the polish. It's the most "just works" of the three. Tab completion is fast and usually right. The chat sidebar doesn't get in the way. Setting up a new repo takes seconds.
+
+### Where it breaks
+
+For long-running agentic tasks, Composer is fine but not great. It loses focus in big diffs. It tends to want to show you each change, which is the wrong UX when the change is "rewrite this 40-file module against the new API."
+
+Also, the IDE-first design means it's a heavyweight install. If I'm SSH'd into a server, or working on a Chromebook, or just in a terminal, Cursor is the wrong shape.
+
+## What Cline is good at
+
+Being a VS Code extension that does not pretend to be more than that.
+
+Cline lives in VS Code, asks for explicit approval on file edits and command execution, and shows you what it's about to do before doing it. For people who want AI assistance but want to remain firmly in the loop, this is the right ergonomic.
+
+It's also free with your own API key, which matters if you're trying to control spend or if you're a student or if you just want to learn what's happening behind the scenes without a per-month commitment.
+
+The model-agnostic design (works with Claude, GPT, local models, others) means it ages well as the model landscape shifts.
+
+### Where it breaks
+
+The "explicit approval on every step" is great when you're learning or auditing. It's slow when you have a 30-step task and you trust the tool. There's a "auto-approve" mode that helps, but the tool fundamentally is built around the conservative loop, and that shows.
+
+UI-wise, Cline is the least polished of the three. Functional, not delightful.
+
+## A small comparison table
+
+| Dimension | Claude Code | Cursor | Cline |
+|---|---|---|---|
+| Best at | Agentic, long-running work | Interactive coding inside an IDE | Cautious AI in your existing VS Code |
+| Worst at | Rapid back-and-forth | Big agentic batch jobs | Speed at scale |
+| Setup | `npm i -g @anthropic-ai/claude-code` | Download the IDE | VS Code extension |
+| Where it lives | Terminal | Standalone IDE | VS Code |
+| Cost shape | Per token, often heavy | Subscription | BYO API key |
+| Best for | Power users, terminal natives | Most working developers | Cautious adopters, students |
+
+## What actually happens day to day
+
+I open Claude Code first thing in the morning to handle whatever batch work is queued — yesterday's audit findings, the migration script I drafted last night, the test coverage gaps from the latest deploy. I let it run while I have coffee.
+
+I open Cursor when I sit down to actually code. Most of my hand-written code now has Cursor as the editor. The tab completion saves enough keystrokes that I notice when I'm in plain VS Code without it.
+
+I open Cline maybe once a week, usually when I want to make a small edit on a machine where I haven't bothered to install Cursor, or when I want to walk a teammate through what an AI assistant is doing without it making moves on its own.
+
+## What none of these tools fix
+
+Bad code organisation. Unclear requirements. Missing tests. Untested assumptions about how systems behave under load.
+
+The tooling has gotten remarkably good in the last eighteen months. The hard parts of software — knowing what to build, knowing whether it's right, knowing what will break — have not gotten any easier. They just take less typing now.
+
+If you're choosing between these three: pick the one whose loop matches how you actually work, not the one with the best demo. The differences are real but smaller than the marketing suggests. The discipline you bring to the work matters more than which logo is in the corner.

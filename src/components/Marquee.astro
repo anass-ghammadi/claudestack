@@ -1,0 +1,18 @@
+---
+const items = [
+  'MULTI-AGENT',
+  'SPEC-DRIVEN',
+  'SKILL.MD',
+  'MCP SERVERS',
+  'CONTEXT ENG',
+  'PRODUCTION',
+  'AUDIT PROTO',
+];
+const doubled = [...items, ...items];
+---
+
+<div class="marquee">
+  <div class="marquee-content">
+    {doubled.map((item) => <span>{item}</span>)}
+  </div>
+</div>

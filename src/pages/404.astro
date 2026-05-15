@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="404" description="Page not found.">
+  <section class="notfound">
+    <div class="container">
+      <div class="notfound-inner">
+        <div class="notfound-status">cat /var/log/missing.log</div>
+        <h1><span class="accent">ERROR</span> 404</h1>
+        <p class="notfound-msg">
+          <span class="comment"># the page you requested was not found in this filesystem.</span><br />
+          <br />
+          either the URL is wrong, or the page has been moved, or it<br />
+          never existed in the first place. logs are inconclusive.
+        </p>
+
+        <div class="notfound-suggestions">
+          <div class="notfound-suggestions-head">suggestions.txt</div>
+          <a href="/">return to home</a>
+          <a href="/articles">browse the archive</a>
+          <a href="/categories/essays">read recent essays</a>
+          <a href="/about">about this site</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

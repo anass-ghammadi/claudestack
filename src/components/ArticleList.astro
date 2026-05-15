@@ -1,0 +1,18 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import ArticleRow from './ArticleRow.astro';
+
+interface Props {
+  articles: CollectionEntry<'articles'>[];
+  startNum?: number;
+}
+
+const { articles, startNum } = Astro.props;
+const total = articles.length;
+---
+
+<div class="articles-list">
+  {articles.map((article, i) => (
+    <ArticleRow article={article} num={startNum !== undefined ? startNum - i : total - i} />
+  ))}
+</div>

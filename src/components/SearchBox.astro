@@ -1,0 +1,81 @@
+---
+// Pagefind search box. Loads /pagefind/pagefind.js at runtime (built by `pagefind --site dist`).
+// In dev mode the script doesn't exist yet — input shows but is disabled with a notice.
+---
+
+<div class="search">
+  <div class="search-input-wrap">
+    <span class="search-prompt">$</span>
+    <input
+      id="search-input"
+      type="search"
+      placeholder="grep articles…"
+      autocomplete="off"
+      spellcheck="false"
+      aria-label="Search articles"
+    />
+  </div>
+  <div id="search-results" class="search-results" aria-live="polite"></div>
+</div>
+
+<script>
+  const input = document.getElementById('search-input') as HTMLInputElement | null;
+  const resultsEl = document.getElementById('search-results') as HTMLDivElement | null;
+  if (!input || !resultsEl) {
+    // nothing to wire
+  } else {
+    type Pagefind = {
+      options: (opts: Record<string, unknown>) => Promise<void>;
+      search: (q: string) => Promise<{ results: { data: () => Promise<{ url: string; meta: Record<string, string>; excerpt: string }> }[] }>;
+    };
+
+    let pagefind: Pagefind | null = null;
+    let loadAttempted = false;
+    let debounceTimer: number | undefined;
+
+    async function ensurePagefind(): Promise<Pagefind | null> {
+      if (pagefind) return pagefind;
+      if (loadAttempted) return null;
+      loadAttempted = true;
+      try {
+        const url = '/pagefind/pagefind.js';
+        // @ts-expect-error — runtime URL resolved at runtime, not bundled
+        pagefind = (await import(/* @vite-ignore */ url)) as Pagefind;
+        await pagefind.options({ baseUrl: '/' });
+        return pagefind;
+      } catch {
+        resultsEl.innerHTML = '<div class="search-empty">// search index not built yet — run `npm run build` first</div>';
+        return null;
+      }
+    }
+
+    async function runSearch(q: string) {
+      if (!q.trim()) {
+        resultsEl.innerHTML = '';
+        return;
+      }
+      const pf = await ensurePagefind();
+      if (!pf) return;
+      const search = await pf.search(q);
+      if (search.results.length === 0) {
+        resultsEl.innerHTML = '<div class="search-empty">// no matches</div>';
+        return;
+      }
+      const top = await Promise.all(search.results.slice(0, 6).map((r) => r.data()));
+      resultsEl.innerHTML = top
+        .map(
+          (r) =>
+            `<a class="search-result" href="${r.url}">
+              <div class="search-result-title">${r.meta.title ?? r.url}</div>
+              <div class="search-result-excerpt">${r.excerpt}</div>
+            </a>`,
+        )
+        .join('');
+    }
+
+    input.addEventListener('input', () => {
+      window.clearTimeout(debounceTimer);
+      debounceTimer = window.setTimeout(() => runSearch(input.value), 180);
+    });
+  }
+</script>

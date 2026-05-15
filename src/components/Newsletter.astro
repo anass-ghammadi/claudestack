@@ -1,0 +1,49 @@
+---
+import { siteConfig } from '../lib/site-config';
+---
+
+<section class="newsletter" id="newsletter">
+  <div class="container">
+    <div class="newsletter-block">
+      <div>
+        <div class="newsletter-meta">SUBSCRIBE / WEEKLY DIGEST</div>
+        <h2>One letter,<br />every <span class="accent">Sunday</span>.</h2>
+        <p>
+          The week's most useful patterns and field notes from building with Claude Code. No fluff. Just signal.
+        </p>
+      </div>
+      <form class="newsletter-form" method="post" action="#" aria-label="Newsletter signup">
+        <div class="newsletter-input-row">
+          <label class="sr-only" for="newsletter-email">Email</label>
+          <input
+            id="newsletter-email"
+            type="email"
+            name="email"
+            placeholder="you@example.com"
+            required
+            autocomplete="email"
+          />
+          <button type="submit">SUBSCRIBE</button>
+        </div>
+        <div class="newsletter-sub-meta">
+          <span>{siteConfig.stats.subs} subscribed</span>
+          <span>1-click unsubscribe</span>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<style>
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>

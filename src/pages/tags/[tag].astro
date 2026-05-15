@@ -1,0 +1,44 @@
+---
+import { getCollection } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleList from '../../components/ArticleList.astro';
+
+export const getStaticPaths = (async () => {
+  const all = await getCollection('articles', (e) => !e.data.draft);
+  const uniqueTags = [...new Set(all.flatMap((a) => a.data.tags))];
+
+  return uniqueTags.map((tag) => {
+    const articles = all
+      .filter((a) => a.data.tags.includes(tag))
+      .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+    return {
+      params: { tag },
+      props: { tag, articles },
+    };
+  });
+}) satisfies GetStaticPaths;
+
+const { tag, articles } = Astro.props;
+---
+
+<BaseLayout
+  title={`#${tag}`}
+  description={`Articles tagged #${tag} on ClaudeStack.`}
+>
+  <section class="articles-section">
+    <div class="container">
+      <div class="section-head">
+        <div class="section-head-left">
+          <div class="section-head-meta">TAG · {articles.length} REPORTS</div>
+          <h2>#<span class="accent">{tag}</span></h2>
+        </div>
+        <div class="section-head-filters">
+          <a class="filter-pill" href="/articles">← all</a>
+        </div>
+      </div>
+
+      <ArticleList articles={articles} />
+    </div>
+  </section>
+</BaseLayout>
