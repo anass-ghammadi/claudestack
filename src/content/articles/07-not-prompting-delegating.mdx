@@ -1,0 +1,99 @@
+---
+title: "You're not prompting. You're delegating to a junior team."
+description: "The mental shift that finally made AI coding tools click. Stop writing prompts. Start writing the kind of brief you'd give to a smart, fast, slightly forgetful contractor."
+pubDate: 2026-05-14
+category: essay
+tags: ["claude-code", "mental-model", "delegation"]
+featured: false
+faq:
+  - question: "Isn't this just semantic? A prompt and a brief are basically the same thing."
+    answer: "Linguistically, sort of. Operationally, completely different. A prompt is a question. A brief is a contract. The shift is from 'I'll know what I want when I see it' to 'here is what done looks like, here are the constraints, here is what to do if you get stuck.' The output quality difference is enormous."
+  - question: "What if I genuinely don't know what I want yet?"
+    answer: "Then you're doing exploration, which is fine — but be honest about it. Run an exploration session, not a build session. Decide what you want at the end. Then run the build session against the brief you wrote yourself."
+  - question: "This sounds like more work upfront."
+    answer: "It is. About 10-15 minutes more on a one-hour task. In exchange, the model finishes in one pass instead of three, asks for clarification before going down the wrong path, and produces a result you can ship instead of one you have to rework."
+relatedSlugs: ["01-orchestrator-pattern", "02-spec-driven-dev"]
+---
+
+For my first eight months with AI coding tools, I was prompting. The output was uneven, sometimes brilliant, sometimes baffling. I assumed that was the technology — sometimes it gets you, sometimes it doesn't.
+
+The technology was fine. The technology was waiting for me to stop prompting and start delegating.
+
+## The two modes
+
+Watch yourself the next time you start a session. There are two distinct modes you can be in.
+
+**Prompting mode** sounds like:
+> "Can you refactor the order router to use the new pricing API?"
+
+**Delegating mode** sounds like:
+> "Refactor `src/router/order.py` to use the new pricing API in `src/pricing/v2`. The new API is async, so the router becomes async too. Keep the existing public signature; only the internals change. Tests in `tests/router/` should still pass without modification. If anything in the existing tests is now wrong, ask before changing them. When done, run the tests and report. Estimated scope: ~2 files, no API surface changes."
+
+The first one is a question. The second one is a brief. Same task. Wildly different outcomes.
+
+## The cost of prompting
+
+The prompt-mode question seems efficient. It's short. It assumes the model can fill in the gaps.
+
+The model *can* fill in the gaps. It just can't read your mind.
+
+So it picks reasonable defaults: which file to refactor (probably the right one, but maybe not the one you meant), what "refactor" means (rename? restructure? rewrite?), how invasive to be (just this file? touch the callers? rewrite the tests?), what "the new pricing API" is (it'll search; sometimes it'll find what you meant, sometimes it'll find an old branch).
+
+The output is plausibly what you wanted. Sometimes it's exactly what you wanted. But you spent the next hour telling it no, not like that, change this, undo that. The session that should have taken twenty minutes took ninety.
+
+You did not save time by being terse. You moved the time from upfront-spec to mid-session correction. Mid-session correction is the most expensive minute of any AI coding session, because it's a minute spent fixing something that's already 80% done in a direction you didn't want.
+
+## The mental model that fixed it
+
+Imagine you have a remote contractor who:
+
+- Is smart, fast, and confident.
+- Has read your codebase but doesn't yet know your priorities.
+- Is willing to do anything you ask, but doesn't ask follow-up questions unless explicitly invited.
+- Will not be offended if you set strict boundaries.
+- Charges by the hour.
+- Will be slightly different each time — there's no continuity from yesterday's session unless you write it down.
+
+Now write the task description for them.
+
+You would not say "refactor the router." You would say what to refactor, what success looks like, what's in scope, what's not, and what to do if they get stuck. You'd attach the relevant files. You'd say "ask before X." You'd give an estimated scope so they know to flag if it balloons.
+
+This is delegation. The model responds to it the same way a contractor would: it does the work you described, in the bounds you set, and asks before stepping outside them.
+
+## What changes when you delegate
+
+Three concrete things change in every session.
+
+**You write more upfront.** A delegating-mode brief takes 5-15 minutes to write. A prompt takes 30 seconds. The brief feels expensive at the moment of writing.
+
+**The model asks better questions.** When the brief has explicit boundaries ("don't touch the tests" / "ask before changing the public signature"), the model asks at the right moment instead of barreling ahead. The questions land before work, not after.
+
+**The output ships in one pass.** This is the actual prize. A brief-driven session produces a diff you can read, review, and merge. A prompt-driven session produces a starting point you have to argue with. Aggregated over a month of work, this is multiple days of saved engineering time.
+
+## The four-line brief, when you don't have time
+
+Sometimes you genuinely don't have 10 minutes. The minimum-viable brief has four parts:
+
+1. **Goal**: what does done look like?
+2. **Scope**: what's in, what's out?
+3. **Constraints**: what must not change?
+4. **Confirm-before**: what should you ask about, not just do?
+
+```
+1. Goal: order router uses pricing v2 API
+2. Scope: src/router/order.py only
+3. Constraints: public signature unchanged, existing tests pass
+4. Confirm before: any change to test files
+```
+
+Four lines. Twenty seconds to write. Catches 80% of the failure modes that a one-line prompt produces.
+
+## Stop calling it prompting
+
+The word "prompt" comes from a different era — the era when you typed a question into a chat box and read what came back. That's still a use case. It's not the use case where you're shipping production code.
+
+When you're shipping code, the model is doing work for you. The interaction is delegation, not conversation. The artifact is a diff, not a paragraph.
+
+Treat it like delegation. Write briefs. Set boundaries. Demand confirmation before scope creep. Pay the 10 minutes upfront.
+
+The output gets dramatically better. Not because the model got better. Because you stopped expecting it to read your mind.

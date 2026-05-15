@@ -1,0 +1,124 @@
+---
+title: "MCP servers: right abstraction, wrong layer"
+description: "A technical critique after a year of running MCP in production. Where the design breaks under real load, what the hidden costs are, and what works better when you can't move them."
+pubDate: 2026-05-13
+category: pattern
+tags: ["claude-code", "mcp", "architecture", "tooling"]
+featured: false
+faq:
+  - question: "Are you saying MCP is a bad idea?"
+    answer: "No. MCP solves a real problem — letting models talk to tools and data sources via a standard interface. It's the right abstraction at the protocol level. What I'm saying is that it's at the wrong layer for many of the use cases it gets cargo-culted into. Local file ops and codebase introspection should be tools the model can call directly, not server round-trips."
+  - question: "What should I use instead?"
+    answer: "For codebase ops, file reads, and shell commands — direct tool definitions in your client. For genuine cross-process integrations (your CRM, your wiki, a remote DB) — MCP is fine and actually appropriate. The line is roughly: if it lives on the same machine and is fast, don't put a server in the way. If it lives somewhere else, MCP is reasonable."
+  - question: "How much latency does MCP actually add?"
+    answer: "In our setup, ~40-80ms per tool call for a local MCP server, ~150-400ms for a remote one. That's the round-trip overhead, not the work itself. For a session that makes 30-50 tool calls, you're paying 1.5-20 seconds of pure protocol overhead. It compounds."
+relatedSlugs: ["01-orchestrator-pattern", "06-claude-md-guide"]
+---
+
+The Model Context Protocol is good at one thing and badly miscast in three others. After a year running MCP servers in a production agentic stack, I have notes.
+
+This is not a takedown. MCP solves a real problem at the protocol layer — give models a standard way to talk to tools, data sources, and external systems. That's a clean abstraction and it deserves to win. What I'm critiquing is *where it's being deployed*: into use cases where a server is the wrong thing to put in the path.
+
+## Where MCP shines
+
+When the integration target genuinely lives somewhere else — another machine, another team's API, a SaaS, a database with its own access controls — MCP is the right tool. You get:
+
+- A standard surface the model can discover (`list_tools`, `call_tool`).
+- A natural place for auth, rate-limiting, and audit logging.
+- A clean process boundary that lets the integration be developed independently.
+
+For "let the model query our internal CRM" or "give the model controlled access to our analytics warehouse" or "connect the model to a Slack workspace" — MCP is appropriate. The protocol overhead is dwarfed by the network call you'd be making anyway.
+
+I have no quarrel with this use case. It's where MCP was designed to live.
+
+## Where MCP breaks
+
+It breaks when people use it for things that should not be servers.
+
+### 1. Local file operations
+
+The most common MCP misuse I see: `mcp-server-filesystem`. A whole subprocess that handles `read_file`, `write_file`, `list_directory`. The agent calls it via JSON-RPC. The server reads/writes the file. Result comes back over the protocol.
+
+The work is `open(path).read()`. The protocol overhead is ~50ms per call. A typical session reads 20-40 files. That's 1-2 seconds of pure round-tripping for operations that take 0.1ms when the agent does them directly.
+
+This isn't a hypothetical. Sessions on our agentic stack went from feeling responsive to feeling laggy when we ran everything through file-MCP. We pulled it out. Sessions sped up dramatically.
+
+The right shape: the agent has a `read_file` tool defined directly in the client. The implementation is `fs.readFileSync` (or your async equivalent). No server. No protocol. No subprocess.
+
+### 2. Codebase introspection
+
+Same shape. `mcp-server-git` or similar — give the model `git status`, `git diff`, `git log` via MCP. Each call is a subprocess that shells out, captures output, marshals it through MCP, and returns.
+
+You can just have the agent run `bash` and capture the output. Same result, no protocol layer. The "discoverability" benefit of MCP doesn't justify the latency for things the agent does dozens of times per session.
+
+### 3. Code execution / sandboxing
+
+Some MCP servers wrap a Python REPL or a JS sandbox. You send code, you get output. This is a use case where the server *might* be appropriate — if the sandboxing is doing real work (process isolation, resource limits, security boundaries). But most implementations I've seen just spawn a subprocess. At that point you're paying protocol overhead to do `subprocess.run`.
+
+If you need real sandboxing, build it. If you don't, expose the shell.
+
+## The hidden costs
+
+Beyond latency, three operational costs that don't show up in the architecture diagram.
+
+### Debugging is harder
+
+When the agent does something unexpected via a direct tool call, the trace is: prompt → tool name → arguments → result → next prompt. Five things to read.
+
+When it does it via MCP: prompt → tool name → JSON-RPC envelope → server log (separate process, separate file) → server-side error → response envelope → client-side wrapping → result → next prompt. The information is split across two processes and a network log. You spend ten minutes correlating timestamps to figure out where a response actually went wrong.
+
+This compounds when something fails silently. Direct tools fail at the call site. MCP failures often surface as "the agent stopped doing things" with no clear root cause until you go log-diving.
+
+### State synchronization
+
+If the model writes a file via MCP and then your IDE reloads it, that's two processes touching the same filesystem. Race conditions are now on the table. With direct tool calls in the same process as the agent, you don't have this category of bug.
+
+### The "every tool wants to be a server" pull
+
+Once you have one MCP server, you start putting more in. The pattern is contagious. A year in, we had six MCP servers, three custom, and a dependency map that no one fully understood. Removing them was a sprint. Should not have added them in the first place.
+
+## When MCP is the right call
+
+To be concrete, here are the cases where I'd reach for MCP:
+
+- **Cross-process integrations.** Agent in one container, target system in another. Network is involved either way. MCP gives you a clean boundary.
+- **Multi-team ownership.** The integration target is owned by a different team that ships independently. MCP lets them version their tools without touching your agent.
+- **Auth + audit.** You need a chokepoint where every tool call is logged, authenticated, rate-limited. A server is the natural place for this.
+- **Discoverability matters.** The agent needs to learn about new tools at runtime, without redeploying. MCP's `list_tools` is purpose-built for this.
+
+For everything else — local file ops, code introspection, shell access — direct tool definitions in your client. Faster, simpler, easier to debug.
+
+## What "direct tool definitions" actually look like
+
+If you're using Claude Code or similar, you're already in this world. Your tools are defined in your client, run in the agent's process, and have no protocol layer between them and the model. This is the right shape for local work.
+
+If you're building your own agentic stack, the pattern is roughly:
+
+```python
+TOOLS = {
+    "read_file": lambda path: open(path).read(),
+    "write_file": lambda path, content: open(path, "w").write(content),
+    "run_shell": lambda cmd: subprocess.run(cmd, shell=True, ...).stdout,
+    # ...
+}
+
+# Then in your agent loop:
+def handle_tool_call(name, args):
+    return TOOLS[name](**args)
+```
+
+That's it. No server. No protocol. Just functions the agent can call.
+
+## The real critique
+
+The protocol is fine. The implementations of "common-case" servers (filesystem, git, shell) are the problem. They take work that should be a function call and turn it into a network round-trip. They take debuggability that should be linear and split it across processes. They take a stack that should be small and add a layer.
+
+If you're starting an agentic project today, my recommendation is:
+
+- **Default to direct tools.** Your `read_file`, your `run_shell`, your `git_diff` — define them in your client.
+- **Reach for MCP when there's a real boundary** — another team, another machine, another auth domain.
+- **Don't install an MCP server because it exists.** Install one because the work it's wrapping needs the layer it adds.
+
+The right abstraction at the wrong layer becomes ceremony. MCP is a great protocol that has, in many places, been deployed where ceremony isn't earning its keep.
+
+Use it where it's appropriate. Don't use it as the default.

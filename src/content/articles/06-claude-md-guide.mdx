@@ -1,0 +1,179 @@
+---
+title: "What goes in CLAUDE.md (and what absolutely shouldn't)"
+description: "The most misused file in any Claude Code project. The four things that belong, the four that pollute the context, and a copy-paste template that survives past month one."
+pubDate: 2026-05-15
+category: guide
+tags: ["claude-code", "claude-md", "configuration", "production"]
+featured: false
+faq:
+  - question: "Is CLAUDE.md the same as a system prompt?"
+    answer: "Functionally close, but with one critical difference: CLAUDE.md is loaded into every session in your project automatically. That means everything you put in it costs tokens, every turn, forever. A system prompt you can change per session; CLAUDE.md you can't. Treat it as expensive real estate."
+  - question: "Should CLAUDE.md be committed to git?"
+    answer: "Yes, almost always. It's a project artifact, like a README. You want every contributor (human or Claude) to operate against the same baseline. Make it part of code review."
+  - question: "What if my CLAUDE.md gets really long?"
+    answer: "That's the smell. If it crosses ~300 lines, you've put implementation details in it that belong in code or docs. Trim it. The CLAUDE.md is meant to be skimmable — it's the thing the model reads BEFORE looking at your code, so it should be brief enough that it doesn't drown out the code itself."
+relatedSlugs: ["02-spec-driven-dev", "04-context-engineering"]
+---
+
+The first time you use Claude Code, the docs tell you to create a CLAUDE.md. They don't tell you what to put in it.
+
+So you put everything. Your coding standards. Your architecture diagrams. Your tribal knowledge. Your team norms. The reasons your linter is configured weirdly. The specific way you like commit messages.
+
+Two months later, your CLAUDE.md is 800 lines, your sessions cost twice what they used to, and the model still doesn't follow the conventions you spent four hours documenting.
+
+The bug is the document.
+
+## What CLAUDE.md actually is
+
+CLAUDE.md is a markdown file at the root of your project. Claude Code reads it at the start of every session in that project. Whatever it says becomes part of the model's context — same as if you'd typed it as a system message.
+
+Three properties this gives it:
+
+1. **It's always loaded.** You pay tokens for it on every turn of every session.
+2. **It's the first thing the model reads about your project.** It frames everything that comes after.
+3. **It applies to every kind of task.** The same CLAUDE.md is in context whether the model is fixing a typo, refactoring a module, or writing a migration.
+
+Those three properties tell you everything about what should go in it.
+
+## What belongs in CLAUDE.md
+
+Four things, in roughly this order.
+
+### 1. Project orientation
+
+Two to four sentences that answer: **what is this codebase, who uses it, what does it do at runtime?**
+
+```
+This is the order routing service for the trading platform.
+It receives Order objects from upstream producers, runs them
+through risk + venue selection, and submits to exchanges.
+Latency-critical: p99 budget is 5ms end-to-end.
+Production. Live money. No experiments in main.
+```
+
+Five lines. Tells the model what kind of work this is, what the constraints are, and the seriousness level. Without this, the model treats every task as a generic Python project. With it, suggestions are calibrated to the actual context.
+
+### 2. The architectural invariants
+
+Three to six bullets describing **decisions that must not be re-derived per session.**
+
+```
+Architectural rules:
+- Each module has a sibling SPEC in specs/. Read the SPEC before the module.
+- All I/O is async. Never block in the event loop.
+- Errors are returned in Result types, never raised across module boundaries.
+- New deps require justification in the PR description.
+- Tests live in tests/, mirror src/ tree.
+```
+
+Not coding conventions (those go in linter config). Architectural boundaries — the things that, if violated, will silently break the system or the workflow.
+
+### 3. Where to look for what
+
+A short map. Optional but high-leverage:
+
+```
+Useful entry points:
+- specs/        — module specs, read before touching code
+- src/router/   — order routing (most active area)
+- src/venue/    — exchange adapters (rarely changes)
+- scripts/ops/  — one-off ops scripts (do not import from src/)
+- ARCHITECTURE.md — full system overview
+```
+
+Saves the model from guessing where things live. Keep it under 10 lines.
+
+### 4. The "don't"s
+
+Two to five bullets covering **mistakes the model has already made twice.** Updated as you go.
+
+```
+Don'ts (learned the hard way):
+- Don't introduce new ORMs. Use the existing repository pattern in src/db/.
+- Don't add print() for debugging. Use the logger.
+- Don't refactor neighbouring code while doing a feature. Keep diffs scoped.
+```
+
+This list is your rolling lessons-learned. When the model does something twice that you don't want, add it here.
+
+## What does not belong in CLAUDE.md
+
+Four categories. All of them feel like they should help. None of them do.
+
+### 1. Coding style and formatting rules
+
+Things like "use 4 spaces" or "prefer single quotes" or "max line length 100." Your linter and formatter handle this. Putting it in CLAUDE.md does three bad things at once: it inflates context, it duplicates the lint config (now they can drift), and it implies the model should self-enforce style — which means it'll spend tokens checking style instead of writing code.
+
+Trust the tooling. The model will run the linter if you tell it to.
+
+### 2. Detailed API documentation
+
+Don't paste in your full API surface, your database schema, your interface signatures. Two reasons: it's enormous, and it goes stale within a week.
+
+If the model needs to know your API, give it a tool to query it (`grep`, `find`, `read_file`). The model can pull the relevant slice when needed. Pre-loading the entire surface guarantees stale context.
+
+### 3. Conversational tone instructions
+
+"Please be concise." "Don't be sycophantic." "Avoid em-dashes." These are personal preferences for a chat session, not project constraints. Put them in your global Claude settings or your shell alias, not in the project CLAUDE.md where they apply to every contributor.
+
+If your team genuinely cares about output style, that's fine — but isolate it: `## Style preferences` at the bottom, two lines max.
+
+### 4. The history of every decision ever made
+
+"In Q2 we considered X but decided Y because Z." This is wonderful information for a wiki or an ADR. It is poison for CLAUDE.md, where it adds tokens without affecting the next decision the model needs to make.
+
+Decisions live in commit messages, ADRs, or design docs. CLAUDE.md describes the *current state*, not the path that got you there.
+
+## A copy-paste template
+
+Here's the skeleton I use. Adapt the bullets, keep the structure:
+
+```markdown
+# CLAUDE.md
+
+## What this is
+
+[2-4 sentences: what runs in production, who uses it, what the
+constraints are, the seriousness level.]
+
+## Architectural rules
+
+- [Rule that must not be re-derived per session]
+- [Module boundary that matters]
+- [Pattern the system relies on]
+
+## Where things live
+
+- src/X/    — [one-line description]
+- src/Y/    — [one-line description]
+- scripts/  — [one-line description]
+- [Pointer to longer docs if they exist]
+
+## Workflow
+
+- [How tasks should flow: spec first? branch naming? PR conventions
+  that affect Claude's behaviour, not just humans]
+
+## Don'ts (lessons learned)
+
+- [Mistake the model made and shouldn't make again]
+- [Another one]
+```
+
+That's it. Six sections. Aim for 80-150 lines total. If you cross 200, you're putting things in that don't belong.
+
+## How to know yours is wrong
+
+Three signals.
+
+**1. The model keeps doing things you said not to.** This is usually because the "don't" is buried in 600 lines of other text. Heavier signal usually wins; a single bullet on line 47 of an 800-line file is wallpaper.
+
+**2. Your sessions are 20-40% more expensive than they used to be.** CLAUDE.md is in every turn. Bloat in the file is a tax on every session.
+
+**3. New contributors can't read it in two minutes.** If a human needs more than two minutes to understand the project's contract from this file, the file isn't doing its job. CLAUDE.md is for orientation, not exhaustive reference.
+
+## Maintenance
+
+Treat it like code. Review changes in PRs. Delete more than you add. Quarterly, do a pass: "is this rule still true? is this section still useful?" Most CLAUDE.md files I've seen rot — they accumulate without anyone going back to prune.
+
+The CLAUDE.md that helps you is the one your future contributor (or your future Claude session) can absorb in two minutes and act on for the next two hours. Anything more is overhead. Anything less is fog.

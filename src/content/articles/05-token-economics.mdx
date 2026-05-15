@@ -1,0 +1,124 @@
+---
+title: "Token economics: what 6 months of production actually costs"
+description: "Real numbers from a year of shipping with Claude Code. What ate the budget, what was worth it, what was theatre. Field notes for anyone signing the invoice."
+pubDate: 2026-05-16
+category: essay
+tags: ["claude-code", "cost", "production", "economics"]
+featured: false
+faq:
+  - question: "Are these numbers accurate for a typical team?"
+    answer: "They're accurate for one team — mine. A two-person engineering shop on a single Python codebase. A 20-person team will have different ratios, different bottlenecks, and probably 5-10x the spend per dev. The patterns transfer; the numbers don't."
+  - question: "How do you actually track this?"
+    answer: "Anthropic's billing dashboard gives you per-day and per-API-key totals. We log session metadata locally (start time, task type, file count) so we can correlate billing days with what was being worked on. Crude but it works."
+  - question: "Should small teams worry about cost optimization at all?"
+    answer: "Probably not at first. Below ~$500/month, the engineering time you spend optimizing will cost more than the tokens you save. Above that, it starts to matter. Above $5k/month, it's worth real attention."
+relatedSlugs: ["01-orchestrator-pattern", "04-context-engineering"]
+---
+
+I have six months of itemized Claude API bills sitting in a spreadsheet. They tell a story I wasn't expecting.
+
+The headline number: about **$2,400 in tokens** to ship roughly 40,000 lines of production Python and a TypeScript dashboard, with two engineers. That's $0.06 per line of shipped code. Whether that's a lot depends on what those lines do — for production trading code with audit logs, paying $0.06 to write, test, and review one is comically cheap.
+
+But the headline hides everything interesting. The interesting part is the shape of the spend — where it went, where it didn't, and what we tried that actually moved the bill.
+
+## Where the money actually went
+
+Six-month breakdown, rounded:
+
+| Category | % of spend | What it was |
+|---|---|---|
+| Long-running agentic refactors | 38% | Multi-file refactors, framework migrations, API surface changes |
+| Spec + audit sessions | 21% | The orchestrator pattern (spec → dev → audit) |
+| Debugging & test fixing | 17% | "This test is flaky, find out why" type tasks |
+| Exploratory / research | 11% | "How would we approach X" prototyping |
+| Code review on PRs | 8% | Automated review of human-written PRs |
+| Operations / one-offs | 5% | Migrations, scripts, small fixes |
+
+The two things that ate most of the budget — agentic refactors and spec/audit — also produced the most concrete output. They're load-bearing. Cutting them would not save 60% of the bill; it would slash output.
+
+The third — debugging — is where I have regrets. Some of those tokens were just "throw the model at it and hope" sessions. We've cut that down with better discipline (write a hypothesis first, then ask).
+
+## The cost per task type
+
+A more useful way to look at it. Average token spend, per task category:
+
+- **Typo fix / small inline edit**: ~$0.02
+- **Add a single function with tests**: ~$0.40 - $1.20
+- **Refactor one file (no API change)**: ~$0.80 - $3.00
+- **Refactor a module across files (with spec + audit)**: ~$8.00 - $25.00
+- **Migration to a new library / framework version**: $40 - $200
+- **Build a new feature end-to-end (spec + dev + audit + tests)**: $25 - $80
+
+The interesting thing isn't the absolute numbers. It's that they're **two orders of magnitude apart** depending on task type. A single feature build costs roughly what a thousand typo fixes cost.
+
+This means the optimization opportunity isn't "use less tokens per session." It's "do fewer expensive sessions." Which means **better task scoping**, not better prompting.
+
+## What didn't move the bill
+
+Things I tried that didn't meaningfully change spend:
+
+- **Switching models for cheap tasks.** Routing trivial fixes to a cheaper model saved ~$30/month in theory. In practice, the savings were eaten by the times I needed the result reliable enough that I re-ran with the bigger model. Net: noise.
+- **Aggressive temperature tuning.** Made outputs marginally different. Didn't change tokens.
+- **Shorter system prompts.** Saved 200 tokens per call. 200 tokens × 5,000 calls/month = 1M tokens. At input pricing, that's ~$3. Don't bother unless your prompts are bloated to absurdity.
+- **Caching system prompts.** Anthropic's prompt caching genuinely helps here when you have a long static system prompt. We saved ~12% on input tokens. Worth turning on. Set and forget.
+
+## What actually moved the bill
+
+Three things, in order of impact:
+
+### 1. Better task scoping
+
+When the spec is clear, the dev session does roughly what was asked and stops. When the spec is vague, the dev session "explores" — meaning runs in circles, re-reads files, second-guesses, asks questions it could have answered itself.
+
+A vague task that should cost $5 reliably costs $25-40. The 5-10x premium for ambiguity is the single largest cost lever in the entire system.
+
+Time spent writing a clear spec is the highest-ROI engineering activity I have.
+
+### 2. Killing context
+
+Long contexts cost more, work less well, and *encourage further long contexts*. A session at 80k tokens of context, doing one more turn, costs more than starting fresh with a 5k-token summary.
+
+The discipline of "summarize and restart" once a session passes ~40k context cuts our long-task spend by ~30%. It's also better for output quality (see [the context engineering essay](/articles/04-context-engineering)).
+
+### 3. Picking the right loop
+
+Some tasks want one big agentic session. Some want five small ones. Most spend overruns I've audited came from putting the wrong task in the wrong loop:
+
+- **Big agentic loop on a small task** = spent $8 for a one-line fix
+- **Small loops chained on a big task** = spent $30 in coordination overhead what one well-scoped session would have done for $12
+
+The "right loop" is task-dependent and you learn it by getting it wrong a few times. Document the cost of past tasks; use it as a calibration anchor.
+
+## Things that look like they should help but mostly don't
+
+- **"Write your prompts more efficiently."** Prompt length is a tiny fraction of cost. The completion (output) is where most spend is. Optimizing prompt verbosity is not where the savings live.
+- **"Use a smaller context window."** Context window is a billing ceiling, not a billing floor. Setting it lower doesn't reduce cost; it just truncates conversations. You pay for what you put in, not for the option to put more.
+- **"Buy bulk credits / commit to a tier."** Worth it when you're spending $5k+/month and have predictable load. Below that, the discount doesn't outweigh the lock-in.
+- **"Self-host an open model for the cheap tasks."** Cost per token: yes, lower. Cost including ops, hosting, latency, GPU lifecycle, and the time to maintain it: not lower. We tried. We stopped.
+
+## A bill I would willingly pay 2x
+
+If the price doubled tomorrow, I would still write the check. Here's why.
+
+The trading system Claude Code helped build does roughly **$X/month in net P&L** (I'm not putting the number on the internet). Last month's API spend was $480. The thing that cost $480 produced something that earns several orders of magnitude more.
+
+That ratio doesn't hold for every codebase. A side project with no users cannot justify $480/month in tokens. But for production code that ships, runs, and earns — the math is not subtle.
+
+The mistake people make when looking at AI coding bills is comparing them to the cost of *not having the tool*. Compare them instead to the cost of an additional engineer doing the same work. At $480/month, Claude is doing work that would take 30-60 hours of human engineering. Even at junior contractor rates, that's $1,500-3,000.
+
+The bill isn't an expense. It's a labor budget. Spend it like one.
+
+## What to do if your bill is climbing
+
+The rough sequence:
+
+1. **Look at it.** Most teams don't, until they get a surprise.
+2. **Bucket it by task type.** Anthropic's per-key billing helps; tagging your sessions helps more.
+3. **Find the top three line items.** Almost always: agentic refactors, debugging, and exploration.
+4. **Ask if scoping was the problem.** Usually it was.
+5. **Document what each task category costs you.** Use it next time someone says "this should be cheap."
+6. **Cap exploratory sessions.** Set a token budget per session for exploratory work. Most "I'll know it when I see it" tasks don't need to spend $40 to find that out.
+
+That's the whole playbook. The actual technical optimizations — caching, model routing, prompt compression — matter at the margin. Discipline at the task level is the main game.
+
+Pay attention to the bill. Pay it without flinching when the work is real.
