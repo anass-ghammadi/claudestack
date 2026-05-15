@@ -13,6 +13,16 @@ export const siteConfig = {
     twitter: '@claudestack',
   },
   defaultOgImage: '/og/default.png',
+
+  // === EDITABLE INTEGRATIONS ===
+  // Buttondown username — find at https://buttondown.com/settings → "Username".
+  // Empty string = form is disabled with a placeholder message.
+  buttondownUsername: 'claudestack',
+
+  // Cloudflare Web Analytics token. Get it at:
+  // dash.cloudflare.com → Analytics & Logs → Web Analytics → Add a site → copy the token from the snippet.
+  // Empty string = no analytics loaded.
+  cloudflareAnalyticsToken: '',
   stats: {
     essays: 62,
     subs: '2,847',

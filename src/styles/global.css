@@ -14,8 +14,8 @@
   --line-bright: #2E2E2E;
   --text: #EDEDED;
   --text-soft: #999999;
-  --text-dim: #666666;
-  --text-faint: #444444;
+  --text-dim: #8a8a8a;
+  --text-faint: #555555;
   --green: #00FF66;
   --green-glow: rgba(0, 255, 102, 0.15);
   --green-dim: rgba(0, 255, 102, 0.5);
@@ -438,7 +438,7 @@ footer {
   max-width: 320px;
 }
 
-.footer-col h4 {
+.footer-col h3 {
   font-family: var(--mono);
   font-size: 10px;
   color: var(--green);
@@ -451,14 +451,14 @@ footer {
 }
 
 @media (min-width: 640px) {
-  .footer-col h4 {
+  .footer-col h3 {
     font-size: 11px;
     margin-bottom: 16px;
     padding-bottom: 12px;
   }
 }
 
-.footer-col h4::before {
+.footer-col h3::before {
   content: '// ';
   color: var(--text-faint);
 }

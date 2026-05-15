@@ -6,6 +6,7 @@ import Header from '../components/Header.astro';
 import MobileMenu from '../components/MobileMenu.astro';
 import Footer from '../components/Footer.astro';
 import SEO from '../components/SEO.astro';
+import { siteConfig } from '../lib/site-config';
 
 interface Props {
   title?: string;
@@ -16,6 +17,8 @@ interface Props {
 }
 
 const { title, description, ogImage, article, noindex } = Astro.props;
+const analyticsToken = siteConfig.cloudflareAnalyticsToken;
+const isProd = import.meta.env.PROD;
 ---
 
 <!doctype html>
@@ -43,5 +46,13 @@ const { title, description, ogImage, article, noindex } = Astro.props;
       <slot />
     </main>
     <Footer />
+
+    {isProd && analyticsToken && (
+      <script
+        defer
+        src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon={`{"token": "${analyticsToken}"}`}
+      ></script>
+    )}
   </body>
 </html>

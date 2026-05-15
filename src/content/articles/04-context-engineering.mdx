@@ -1,0 +1,136 @@
+---
+title: "Context engineering: 200K tokens without losing your mind"
+description: "What works, what's snake oil, what genuinely scales when you actually need to put 100k+ tokens of context in front of a model. Notes from production."
+pubDate: 2026-04-22
+category: essay
+tags: ["claude-code", "context", "production", "architecture"]
+featured: false
+faq:
+  - question: "If 200K context exists, why not just throw everything in?"
+    answer: "Two reasons. First, attention degrades — recall on tokens 50k-150k is measurably worse than tokens 0-10k or the very end. Second, you pay for every token, every turn. A 180k-context conversation that runs for ten turns costs you 1.8M input tokens. Even at sub-cent pricing that's real money, and you almost never need it."
+  - question: "Isn't this just RAG with extra steps?"
+    answer: "RAG is one tool in the box. The point of context engineering is choosing the right tool — sometimes RAG, sometimes summarization, sometimes a sub-agent, sometimes just trimming. RAG cargo-culted onto every problem makes things worse, not better."
+  - question: "How do you decide when context is the problem?"
+    answer: "When the model starts contradicting itself, hallucinating things you said earlier, or producing output that ignores recent instructions. Those are context degradation symptoms, not model symptoms. Same model + smaller, cleaner context usually fixes it."
+relatedSlugs: ["01-orchestrator-pattern", "02-spec-driven-dev"]
+---
+
+The pitch is seductive: 200,000 tokens of context, just put everything in. Your whole codebase. Your whole spec. Your whole conversation history. The model figures it out.
+
+It does not figure it out.
+
+Eighteen months of running models with very long context windows in production has taught me one thing more than anything else: **the size of your context window is not a measure of how much context the model can actually use**. It's a measure of how much context the model can be billed for.
+
+## The shape of the failure
+
+Symptoms of a context problem, in roughly the order I see them:
+
+1. The model contradicts something it said three turns ago.
+2. The model "forgets" an instruction from the system prompt.
+3. The model invents a function or class that doesn't exist in the code you pasted.
+4. The model produces output that's plausibly relevant to the *topic* but ignores the *specific request*.
+5. The model starts giving you generic, untextured advice — the kind of advice you'd get from someone who hasn't read what you sent.
+
+None of these are model failures. They are context failures. The model is making the best inference it can on a polluted, contradictory, unreadable input. The bug is upstream.
+
+## Why "more context" almost always makes this worse
+
+There is a measurable curve called *attention drop-off*. On the latest generation of models, recall on tokens placed in the middle 60% of a long context is somewhere between 60-85% accurate. Tokens at the start and end of context: 95%+. The model is not lying about having a 200k window — it just genuinely cannot pay equal attention to all of it at once.
+
+This means the move "I'll just paste all 80 source files in the prompt" is not the safe upper bound you think it is. It is a guarantee that the things in the middle will be partially ignored.
+
+It also means the standard fix — "the model didn't catch X, let me add another 5 paragraphs explaining X" — makes the problem worse, not better. You just buried something else.
+
+## What actually scales
+
+A small toolbox. Used in this order:
+
+### 1. Trim ruthlessly
+
+Before adding anything, ask: what can I remove? The conversation history from two days ago that's no longer relevant. The 200-line file when only one function matters. The verbose framework boilerplate. The greeting messages.
+
+Most of the "I'm running out of context" panics in my logs were solved by removing 70% of what was in the context, not by adding 30% more.
+
+### 2. Summarize aggressively
+
+When a session has been running long, replace the early turns with a structured summary. Not "the user and assistant talked about X" — that's useless. Something like:
+
+```
+## Established context (turns 1-15)
+- Goal: refactor order_router.py to support multi-leg orders
+- Constraint: must remain p99 < 5ms; no breaking changes to upstream callers
+- Decisions made:
+  - Use composite OrderGroup type (not Optional[List[Order]])
+  - Lift validation into validator.py (not inline)
+- Open questions:
+  - How to handle partial fills across legs (deferred to next session)
+```
+
+Twenty lines that do the work of two thousand. The orchestrator pattern from [the first essay](/articles/01-orchestrator-pattern) makes this natural — the spec session writes a summary, the dev session reads only that.
+
+### 3. Retrieve, don't dump
+
+If you have 80 files of code, you do not need to pre-load all 80. You need a way for the model to ask "show me file X" or "search for symbol Y" *as it works*. This is what the recent generation of code-aware tools (Claude Code, Cursor) gets right — they don't dump the codebase into the prompt; they expose it via tools and let the model pull what it needs.
+
+When you build your own pipelines, copy this. Give the model a `read_file(path)` tool, a `search_codebase(query)` tool. Its working context stays small. Its effective context becomes huge.
+
+### 4. Split into sub-agents
+
+When one task requires too much context, the answer is often two tasks. Run a "researcher" sub-agent that reads broadly and produces a 500-token report. Pass *just the report* into the main session. The researcher's 100k-token slog is invisible to the main task.
+
+Token cost goes up, total context the orchestrator sees goes way down. Coherence improves dramatically.
+
+### 5. Build in checkpoints
+
+Long-running agentic work should write its own state to disk every few steps:
+
+```
+checkpoints/
+  spec.md
+  plan.md
+  diff-step-3.patch
+  audit.md
+```
+
+If the session crashes or context fills up, you don't restart. You start a new session and feed it the checkpoints. Three minutes later, the new session has the same context the old one was about to lose, in 1/20th the tokens.
+
+## What is snake oil
+
+There is a class of advice that sounds like context engineering and isn't.
+
+**"Just use a vector database."** Vector DBs are great when your problem is "find the relevant documents in a corpus." They are worthless when your problem is "the model needs to reason coherently across a workflow." Embedding similarity is not the same thing as coherence. RAG is a tool, not a pattern.
+
+**"Pre-summarize everything with a smaller model."** Sometimes useful, often a pipeline that loses fidelity at every hop and adds latency. If the small model summarizes wrong, the big model now reasons over a confidently wrong summary, which is worse than reasoning over noisy raw input.
+
+**"Use the largest context window available, you'll regret it if you don't."** No. Use the smallest context that holds the actual signal. Bigger windows are an option, not an obligation. The teams I see ship the most are the ones running cleanly under 30k context per turn.
+
+**"Add a 'IMPORTANT:' header to make the model pay attention."** Sometimes works, often noise. The reason your instruction is being ignored is probably that it's competing with three other contradictory instructions further up. Fix the contradiction. Don't shout louder.
+
+## The mental model
+
+Stop thinking of context as a bucket you fill. Start thinking of it as a **signal-to-noise ratio**. The numerator is the bytes that materially affect the next token. The denominator is everything else. Your job is to keep that ratio high.
+
+A 50k-token context with SNR of 0.9 will outperform a 180k-token context with SNR of 0.2 every single time. By a lot. On every metric you care about: correctness, coherence, latency, cost.
+
+The 200k window is not a feature you should use. It is a budget you should rarely need.
+
+## When to actually use the long context
+
+There are real cases. Reading a single very long document and answering questions about it. Reviewing a large unified diff in one shot. Synthesizing across a whole codebase for a one-off architectural review.
+
+The pattern they share: **single-shot, single-purpose, no conversation continuation**. You load the long context, you do one thing with it, you throw the session away. Long context is for one-time deep reads, not for ongoing work.
+
+If you find yourself building a workflow where the model is supposed to remember 100k tokens across ten turns, you have not found a use case for long context. You have found a use case for splitting that workflow.
+
+## Summary, since this got long
+
+- Long context exists. It is not free. It is not magic.
+- Attention degrades in the middle of large contexts. This is measurable and consistent.
+- The default move when something breaks is **remove**, not add.
+- Summarize, retrieve, split into sub-agents, checkpoint to disk.
+- "Use the biggest window" is the same energy as "use the biggest framework." Sometimes right. Usually wrong.
+- High signal-to-noise beats high token count. By a lot. Every time.
+
+The teams shipping serious software with these models are not the ones with the cleverest prompts or the longest contexts. They are the ones with the strictest discipline about what gets to be in the context in the first place.
+
+That discipline is the work.
