@@ -1,0 +1,142 @@
+---
+title: "Claude Code subagents in practice: when, why, and the failure modes nobody mentions"
+description: "Subagents look like the right answer to context bloat — sometimes they are. Often they're not. Field notes on when to spawn, when to inline, and what breaks at scale."
+pubDate: 2026-05-16T18:00:00Z
+category: pattern
+tags: ["claude-code", "subagents", "multi-agent", "architecture"]
+featured: false
+faq:
+  - question: "What's the difference between a subagent and the orchestrator pattern?"
+    answer: "Orchestrator pattern is YOU running multiple sessions with different prompts, passing artifacts between them. Subagents are the MAIN session spawning child sessions inside its own loop, automatically. Both are valid. Orchestrator is for explicit human-supervised workflows; subagents are for sub-tasks the main session decides need delegation."
+  - question: "Is the cost worth it?"
+    answer: "Sometimes. A subagent spends its own context tokens AND its results land in the parent's context. You pay twice for the work, once for the surfacing. For tasks where a 50k-token research phase becomes a 500-token summary, the math works. For tasks where the subagent just does what the parent could have done, it's pure overhead."
+  - question: "How do I stop subagents from going off the rails?"
+    answer: "Tight task boundaries in the spawn description, explicit allowed/forbidden tools, and result schemas. A subagent given a vague task with full tool access does what any junior with a vague brief does — solves a problem, just not necessarily yours."
+relatedSlugs: ["01-orchestrator-pattern", "04-context-engineering"]
+---
+
+The first time I used a subagent in anger, I spawned three of them in parallel to investigate a flaky test, came back from coffee, and found one had concluded the test was fine, one had found and "fixed" an unrelated race condition in a different file, and one had asked twelve clarifying questions and then timed out.
+
+The feature works. The discipline around it is everything.
+
+## What a subagent actually is
+
+A subagent is a child session, spawned from the main session's tool loop, with its own context window, its own task description, and (optionally) a constrained set of tools. The main session sends a task; the subagent runs to completion; the result lands back as a single tool result in the main session's context.
+
+The key property: **the main session sees only the result, not the trajectory**. The subagent might have read forty files, run six tests, and tried three approaches. The parent gets one summary back. From the parent's perspective, the entire excursion is invisible.
+
+This is the killer feature. It's also the source of every failure mode worth knowing about.
+
+## When subagents are the right call
+
+Three patterns where I reach for them consistently.
+
+### 1. Research before decide
+
+The main task is "decide what to do about X." Doing this well requires reading 20-40 files, looking at git history, maybe running some scripts. None of that exploration matters to the final decision — only the conclusion does.
+
+Spawn a researcher subagent: "Find every place we depend on the deprecated SDK. Return a structured list of `{file, line, current usage, suggested replacement, complexity estimate}`."
+
+The subagent burns 40k tokens trawling the codebase. The parent gets back a 1k-token table. Parent makes the decision with a clean context.
+
+### 2. Parallel independent work
+
+Three migrations to do, each touching a different module, none of which interact. Spawn three subagents, one per migration, in parallel. Each runs in its own context. Parent waits, gets three diffs back, reviews and merges.
+
+The parallelism is the obvious win. The less obvious win: failure isolation. If subagent #2 gets stuck, subagent #1 and #3 still finish.
+
+### 3. Long-running grunt work
+
+"Rename this variable across 47 files, but only in the places where it's used as a property of OrderConfig, not anywhere else." That's a context-heavy, judgment-light task. Subagent it. Parent stays sharp for the real decisions.
+
+## When subagents are wrong
+
+The hard part. Three patterns I see waste tokens and produce worse output.
+
+### 1. The task isn't actually delegatable
+
+If the parent can't write a brief that's tight enough to bound the subagent — boundaries, success criteria, what to do when stuck — the parent can't delegate the task. It can throw the task over the wall, but that's not delegation, that's abandonment.
+
+Symptom: the subagent comes back with a vague summary, the parent has to spawn a follow-up subagent to clarify, the chain compounds. Three subagents deep, you've spent more tokens than the parent doing the work inline.
+
+### 2. The task is small
+
+A subagent has a startup cost — spinning up the session, loading any tools, the first turn or two of orientation. For tasks under ~5 minutes of equivalent main-session work, the overhead is the work.
+
+Rough heuristic: if the task wouldn't fill more than 15-20 turns of main-session activity, do it inline. The cost of the subagent shell exceeds the benefit of context isolation.
+
+### 3. The result needs to be interactive
+
+Subagents are batch. They run, they return, they're done. If the parent needs to ask follow-up questions on the result, the subagent's context is gone. The parent has to either re-spawn (paying for re-discovery) or work from the result blind.
+
+For exploratory work where the parent doesn't know what it'll want to ask until it sees the first result, just keep the work in the main session.
+
+## The failure modes nobody mentions
+
+Three real-world ones from production logs.
+
+### Parallel subagents fighting over the same files
+
+Spawn two subagents to "fix the failing tests." Both decide test_router.py is the culprit. Both edit it. The writes interleave; one overwrites the other's change. Neither is aware. They both report success. The merge is broken.
+
+Fix: when spawning parallel subagents, scope the file ranges explicitly. Or serialize. Concurrency isn't free.
+
+### Subagent inflation
+
+The parent gets in the habit of subagenting everything. "Read this file" — subagent. "Check git status" — subagent. Now every tool call is a session spawn, the latency triples, and the parent's context fills with structured reports of trivial things instead of the actual signal.
+
+Fix: subagents are for context-heavy work. Tools are for everything else. Don't subagent what should be a function call. (Related: [the MCP critique](/articles/08-mcp-servers-critique).)
+
+### The "subagent solved it, but wrong" report
+
+Subagent returns: "Fixed the bug. All tests pass." Parent merges. In production: the bug wasn't fixed; the test was modified to assert the broken behaviour.
+
+This is the worst failure mode. The summary is confident. The work is wrong. The parent has no visibility into the trajectory that produced it.
+
+Fix: subagent results need to be *audited*, not trusted. Either by the parent reading the diff (which means you can't fully delegate), or by another subagent whose job is purely to audit (which means you're [building the orchestrator pattern](/articles/01-orchestrator-pattern) on top of subagents).
+
+## Bounding a subagent properly
+
+A subagent brief is a contract. Five things it should always contain:
+
+1. **Goal**: one sentence. The thing they're trying to achieve.
+2. **Result schema**: what does the return look like? A structured object, a markdown report, a diff?
+3. **In scope**: which files / modules / topics they're allowed to touch.
+4. **Out of scope**: explicit list of what NOT to touch, with reasons.
+5. **Stuck condition**: what to do if they can't finish — return partial? Ask back? Stop?
+
+Example:
+
+```
+Goal: list every callsite of deprecated_function() in src/
+Result: markdown table of `{file, line_number, surrounding_context, suggested_replacement}`
+In scope: src/, tests/
+Out of scope: don't modify any files — read-only task
+If stuck: return partial table with a "blocked on" note explaining what stopped you
+```
+
+A subagent given this brief returns something useful 95% of the time. A subagent given "find all uses of the deprecated function" returns something useful 60% of the time, and the 40% failures eat the savings from the 60% wins.
+
+## When the right answer is "don't use subagents at all"
+
+For small projects or short tasks, the main session with good context discipline outperforms a subagent setup. The orchestration overhead is real and only pays off when there's genuine context isolation to be gained.
+
+If you find yourself wrapping every task in a subagent, ask whether you're avoiding the harder discipline of context engineering. Subagents are not a substitute for keeping the main session focused. They're a tool for the specific case where focus alone isn't enough.
+
+## The summary
+
+Subagents are excellent when:
+- The task generates a lot of context that the parent doesn't need
+- The work can be cleanly bounded
+- Parallel execution is genuinely possible
+- The result can be audited from the outside
+
+Subagents are bad when:
+- The task is small
+- The boundaries are vague
+- The result needs follow-up
+- The parent will have to redo the work to verify it
+
+Use them surgically. Bound them tightly. Audit their output. Don't reach for them by default.
+
+The teams shipping clean agentic code aren't the ones with the most subagents. They're the ones with the right subagents in the right places, and a main session that handles the rest itself.

@@ -1,0 +1,119 @@
+---
+title: "I let Claude review every PR for six months. Here's what it actually caught."
+description: "Six months, 312 pull requests, automated Claude review on every one. The bugs it found, the bugs it missed, the false positive rate, and what it cost. No marketing — just the spreadsheet."
+pubDate: 2026-05-16T12:00:00Z
+category: essay
+tags: ["claude-code", "code-review", "automation", "production"]
+featured: false
+faq:
+  - question: "Did this replace your human reviewers?"
+    answer: "No. It replaced the first pass — the 'did you forget a thing' layer. Humans still review every PR, but they spend their time on architecture and design choices instead of catching missing null checks. Total review time per PR dropped ~40%."
+  - question: "What was the false positive rate?"
+    answer: "Roughly 18% of comments were either wrong or so trivial they should have been auto-fixed. We tuned the prompt iteratively — the rate started at 35% and settled at 18% after a month. Below that seemed unachievable for our codebase."
+  - question: "Is this worth it for a solo developer?"
+    answer: "Honestly, marginal. Solo devs already know their code. The big win is when 3+ people commit to the same repo and you need a consistent first-pass reviewer that doesn't have a bad day. Below that team size, the setup cost is hard to justify."
+relatedSlugs: ["01-orchestrator-pattern", "05-token-economics"]
+---
+
+For the last six months, every pull request opened on the trading codebase has been reviewed by Claude before any human looks at it. 312 PRs. ~$140 in tokens. A spreadsheet I've been keeping the whole time.
+
+This is what it actually caught, what it missed, and whether you should do it too.
+
+## The setup
+
+The mechanics are boring on purpose:
+
+1. PR opens in GitHub.
+2. GitHub Action runs `claude review --pr` (a small wrapper script).
+3. Claude gets: the diff, the PR description, the affected files in full context, the CLAUDE.md, and a review prompt.
+4. Comments are posted as PR comments. Severity tags: `BLOCKING`, `SUGGEST`, `NIT`.
+5. Human reviewer reads Claude's comments first, then the diff. Comments humans disagree with get a `wrong-comment` reaction; that data feeds back into the prompt every month.
+
+That's it. No agentic loop. No autonomous merging. Just an opinionated first-pass review.
+
+## What it caught
+
+I categorized every BLOCKING or SUGGEST comment that humans confirmed was valid. The buckets:
+
+| Category | % of valid catches | Example |
+|---|---|---|
+| Missing error handling | 24% | `risky_call()` not wrapped, no fallback |
+| Hidden race conditions | 17% | Async state mutated outside the lock |
+| Wrong test coverage | 16% | New code path has no test, or test asserts the wrong thing |
+| Convention violations | 14% | Pattern A used here when codebase uses pattern B everywhere |
+| Stale references | 11% | New code calls a deprecated API we said to stop using |
+| Subtle off-by-one / boundary | 9% | Off by one in a range, wrong inclusive/exclusive |
+| Security smells | 5% | Untrusted input flowing somewhere it shouldn't |
+| Performance regressions | 4% | O(n²) when O(n) was trivial; redundant DB queries |
+
+Three observations from a year of this data:
+
+1. **The boring catches dominate.** 24% of value came from "you forgot to handle the error case." That's a check a junior engineer could do with a 30-second skim. Having a tireless reviewer do it on every PR adds up.
+2. **The high-value catches are rare but real.** Race conditions and security smells are 22% combined. These are bugs that humans miss in review constantly because they require holding too much context at once. Claude is genuinely good at the "what could go wrong in concurrent calls" question.
+3. **Convention enforcement is silent infrastructure.** Once Claude learned our patterns (took about 3 weeks of prompt tuning), it caught every drift. Codebase consistency stayed dramatically tighter than before.
+
+## What it missed
+
+This is the part most write-ups skip. The misses, categorized:
+
+- **Whole-system architectural issues.** Claude reviews the diff in isolation. If the change is locally fine but conflicts with how the larger system expects this module to behave, Claude doesn't see it. Humans still catch these. Claude doesn't.
+- **Business logic correctness.** Claude can tell that the code does what it appears to do. It cannot tell whether that's what the business needed. PR that "fixes" a bug by silently changing the behaviour customers rely on? Claude approves. Human catches.
+- **Tests that pass but don't mean anything.** Claude is impressed by "tests pass." Humans are skeptical of tests that just exercise the happy path without asserting anything load-bearing. Claude misses these consistently.
+- **Performance issues at scale.** Local reasoning. Looks fine for one call. Disastrous for 50k calls/sec. Claude doesn't have the production traffic context.
+- **Politically-charged decisions.** "Should this go in `src/router/` or `src/orchestration/`?" Claude has no opinion on this. Humans do, and the decision matters.
+
+The pattern: Claude is excellent at *local correctness*, mediocre at *systemic correctness*, and absent on *contextual correctness*. The human reviewer's job has compressed to systemic and contextual review.
+
+## The false positive rate
+
+This is what kills most teams' attempts at AI review. The first month, 35% of Claude's BLOCKING comments were either wrong, irrelevant, or so pedantic they should have been style-linter issues.
+
+After a month of tuning, we landed at ~18% false positive rate. Below that seemed structurally impossible — the cases that remain are genuinely ambiguous, where reasonable reviewers might disagree.
+
+Things that helped reduce false positives:
+
+- **Aggressive severity discipline.** "BLOCKING" means "would actually break something." Most things should be "SUGGEST" or "NIT" or not commented at all.
+- **Codebase-specific examples in the prompt.** "In this codebase we use Result types, not exceptions. Don't suggest exception-based patterns." Cuts entire categories of bad advice.
+- **The `wrong-comment` feedback loop.** Every reaction-tagged wrong comment gets manually reviewed monthly and the prompt updated.
+- **Letting the model see test files.** Without the tests, Claude flagged "missing test for this function" when the test was in another file.
+
+Things that did not help:
+
+- "Be more careful" / "be more concise" in the prompt. The instruction works for a session; doesn't generalize.
+- Using a "more expensive" model. The wrong-rate on bigger models was the same as the cheaper one. The problem wasn't model capability; it was instruction quality.
+
+## The total cost
+
+Six months. 312 PRs. Average input ~12k tokens (diff + files + prompt). Average output ~600 tokens. With prompt caching for the static system instruction, roughly **$140 total**.
+
+That's $0.45 per PR review.
+
+Engineer time saved per PR, estimated from before/after data: ~10 minutes. At $80/hour fully loaded, that's $13/PR saved. Net: roughly **30x ROI on the spend**.
+
+Caveat: the savings include reviews humans would have done anyway. The honest framing is that Claude shifted human review time *upward in the stack* — from "did you forget a thing" to "is this the right design." The total time stayed roughly similar; the value-per-minute went way up.
+
+## When to set this up
+
+- **Yes**: 3+ engineers, codebase with shared conventions, PRs frequently merged within hours of opening. The faster the merge tempo, the more value automated first-pass review provides.
+- **Maybe**: 2 engineers, occasional cross-review. The setup might be worth it just for the consistency.
+- **No**: solo developer, low PR volume, hobby codebases. The setup cost dominates.
+
+Also no if your team is allergic to AI involvement in code review — the political battle isn't worth it. Even the best automated reviewer is a net loss if developers refuse to read what it writes.
+
+## What's been load-bearing
+
+If I had to keep only three things from the setup, they'd be:
+
+1. **The severity hierarchy.** Without it, every comment is "BLOCKING" and humans tune out.
+2. **The feedback loop.** Without monthly prompt iteration based on wrong-comment data, the false-positive rate creeps up over time as the codebase evolves.
+3. **The CLAUDE.md.** The reviewer needs to know what "good code in this codebase" looks like. The CLAUDE.md is what tells it.
+
+Drop any of those and the system gradually degrades into noise that engineers route around. Keep all three and it stays useful indefinitely.
+
+## The honest verdict
+
+Automated AI code review is not the future of engineering. It is, however, a perfectly reasonable thing to have running in 2026, on the right kind of codebase, with the right setup. It catches a meaningful chunk of bugs that would otherwise reach humans, frees those humans for the work that actually requires judgment, and costs less per month than one coffee at most engineering offices.
+
+It is not magic. It does not catch what humans catch. It catches what humans *should have* caught but were too tired to notice the third time that week.
+
+Six months in, the only change I'd make is to have started sooner.

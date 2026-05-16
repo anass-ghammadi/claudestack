@@ -1,0 +1,110 @@
+---
+title: "Vibe coding vs discipline coding: what survives contact with production"
+description: "Karpathy's term went viral. The split it described is real. Field notes on what each mode is good for, and why one of them stops working the day someone pays you for the code."
+pubDate: 2026-05-16T15:00:00Z
+category: essay
+tags: ["claude-code", "vibe-coding", "production", "discipline"]
+featured: true
+faq:
+  - question: "Is vibe coding actually bad?"
+    answer: "No. It's the best mode for the first 48 hours of a project, for personal tools, and for any code whose worst-case failure is 'I rerun the script.' It stops working when the failure mode becomes 'a user is angry' or 'we lost money.' Use it where it fits, drop it where it doesn't."
+  - question: "What does 'discipline coding' look like in practice?"
+    answer: "Specs before code. Audits after. Diffs reviewed before merge. Tests that mean something. A clear separation of what the model is allowed to do autonomously vs what needs a human signoff. It's slower per task, dramatically faster per shipped feature."
+  - question: "Where's the line between the two?"
+    answer: "Roughly: does the code have a user other than you, and is something material at stake if it breaks? Both yes = discipline. Either no = vibe is fine. The line moves over the lifecycle of a project — what starts as vibe code often needs to be reworked under discipline as it becomes load-bearing."
+relatedSlugs: ["01-orchestrator-pattern", "07-not-prompting-delegating"]
+---
+
+The term "vibe coding" came from a Karpathy tweet that immediately turned into a meme. The meme deserved its viral run because the thing it named is real. Building software by feel — letting the model run, watching what happens, accepting most of it, tweaking the rest — is genuinely a way to ship code now, and it works for a class of problems where it did not work before.
+
+The problem isn't the term. The problem is that "vibe coding" got generalized into a methodology by people who hadn't yet hit the limits of where it stops working. Six months later, the cleanup is starting.
+
+This is a field report on the line.
+
+## What vibe coding actually is
+
+Stripped of the meme energy, vibe coding has three properties:
+
+1. **Low specification.** You don't write down what you want before you start. You ask the model, look at what comes back, adjust.
+2. **High acceptance.** Most of what the model produces is taken as-is. Edits are surface-level. The model's choices become your code.
+3. **Discovery-driven scope.** You don't know exactly what the final thing will do. You'll know when you see it.
+
+When the loop works, it's an extraordinary acceleration. Things that would have taken a week of front-loaded planning come together in an afternoon. The cost of changing your mind is near zero. The model is doing the typing and a lot of the deciding.
+
+When it doesn't work, the failures are subtle. The code runs. The features mostly do what they sound like. Six weeks later you discover that two functions both claim to validate the same thing, one of them is wrong, and neither is the one being called.
+
+## Where vibe coding shines
+
+I am not anti-vibe. There are categories of work where it's the right tool:
+
+- **Personal tools.** Scripts you use, that nobody else relies on, where the worst failure is "I run it again." Vibe away.
+- **Day-one prototypes.** When you don't yet know what the product is, vibe coding is faster than writing specs. The specs come from playing with the prototype.
+- **Throwaway integrations.** A one-off data migration. A script to scrape one site once. Vibe is fine.
+- **Exploratory research.** "What would this look like if we built it this way?" Vibe.
+- **Learning.** When you're learning a new framework or language, vibing lets you see the shape of the system before you commit to patterns.
+
+These cases share a property: **the cost of a hidden bug is low**. Either no one will use this code, or its failure is recoverable.
+
+## Where vibe coding stops working
+
+The day the code starts having users who are not you.
+
+The day there's money involved — yours, theirs, anyone's.
+
+The day someone else has to read it, modify it, or be on call when it breaks.
+
+The day the dataset gets large enough that a wrong-but-plausible result looks indistinguishable from a right one.
+
+At each of these transitions, the failure mode of vibe coding changes. The same loose loop that made you fast in week one is now what's producing bugs you can't track down in week six. Code that's mostly right is fine when "mostly" is your problem. Code that's mostly right is catastrophic when "mostly" means "wrong invoices to two hundred customers."
+
+The model didn't get worse. The bar moved.
+
+## What discipline coding actually is
+
+Discipline coding is not the opposite of fast. It's the deliberate insertion of three checkpoints into the loop:
+
+1. **Before the code: a spec.** Even a short one. What's the goal, what's in scope, what's the contract.
+2. **After the code: an audit.** Either by you reading the diff, by a second model session, or by tests that mean something. Code is not done because the model said it was done.
+3. **Between sessions: a record.** What was decided, why, what's still open. The decision lives in the repo, not in chat history that's about to compact.
+
+This is the orchestrator pattern from a different angle. The spec/dev/audit loop isn't multi-agent theatre — it's the minimum amount of structure that catches the failures vibe coding silently ships.
+
+Discipline coding is slower per task. It's dramatically faster per *correctly shipped feature*, because the rework rate is a fraction of what vibe coding produces. Aggregated over a month, discipline coding ships more.
+
+## The honest tradeoff
+
+The vibe-coding pitch is "10x productivity." Sometimes true for week one. By month three, on real code, the productivity multiplier of vibe over discipline is closer to 1.0-1.5x for the work that ships and 0.3x for the work that has to be redone.
+
+The discipline pitch is "slower but right." More accurate: same speed by week four, faster by week eight, dramatically faster by month four.
+
+People who only ever built short-lived projects come out of vibe coding evangelizing it. People who built one short-lived project and then tried to take it to production come out of vibe coding looking for what's next.
+
+## How to know which mode to be in
+
+Three questions, in order:
+
+1. **Who, other than me, will be affected if this breaks?** No one → vibe is fine. Anyone → discipline.
+2. **Will this code still exist in six months?** No → vibe. Yes → discipline.
+3. **Can I cleanly tell what 'done' means?** No → you're not ready for either mode; do exploration first, then decide.
+
+The mistake people make is staying in vibe mode after the answer to question 1 has flipped from "no one" to "someone." Code that started as a vibe-coded prototype becomes load-bearing without anyone noticing the transition. The maintenance bill comes later.
+
+## What changes culturally
+
+If you're on a team adopting AI coding tools, the cultural battle is not between AI-skeptical and AI-curious people. It's between people who think discipline is the cost of working with these tools and people who think discipline is what you skip *because* of these tools.
+
+The first group ships software. The second group ships rewrites of software, in roughly the same time.
+
+The tools don't pick a side. They amplify whoever's driving. Vibe coders with these tools ship vibe at scale. Disciplined engineers with these tools ship more disciplined software, faster.
+
+## The synthesis
+
+The honest position isn't "vibe coding is bad" or "discipline is the only way." It's:
+
+- Vibe-code the first 24-48 hours of any project, to figure out what it actually is.
+- Switch to discipline the moment the project's failure mode involves anyone but you.
+- Be honest about which mode you're in. The most expensive bugs come from vibe-coding code that you think is being disciplined about.
+
+Karpathy's tweet was a great vocabulary. It gave us a word for a real mode. The mistake is treating it as a methodology when it's actually a stage — the first stage, the cheap and joyful one, the one you grow out of as the stakes climb.
+
+Use both. Use them in the right order. Don't be ashamed of either. But don't confuse them, because the bugs you get from confusing them are the ones that wake people up at 3am.

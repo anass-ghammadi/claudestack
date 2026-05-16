@@ -1,0 +1,251 @@
+---
+title: "Writing your first SKILL.md: a practical guide that actually ships"
+description: "Skills are the most underused feature in Claude Code. A concrete walk-through: what a skill is, what makes one good, what makes one useless, and three copy-paste templates that work."
+pubDate: 2026-05-16T09:00:00Z
+category: guide
+tags: ["claude-code", "skills", "skill-md", "configuration"]
+featured: true
+faq:
+  - question: "Why use a SKILL.md instead of just putting the instructions in my prompt?"
+    answer: "Skills are loaded conditionally — only when relevant — and they encapsulate a *capability* (here's how to do X), not a global constraint (always do Y). They keep your CLAUDE.md focused on project orientation and let task-specific knowledge live where it belongs. They're also reusable across projects."
+  - question: "Where do SKILL.md files actually live?"
+    answer: "Depends on scope. User-level skills go in `~/.claude/skills/<skill-name>/SKILL.md`. Project-level skills go in `.claude/skills/<skill-name>/SKILL.md` within the repo. The model auto-discovers and loads the relevant ones based on the task."
+  - question: "How long should a SKILL.md be?"
+    answer: "60-200 lines is the sweet spot. Under 60 and it's probably too generic to be useful. Over 200 and you're writing documentation, not a skill. If your skill is getting long, it's probably two skills."
+relatedSlugs: ["06-claude-md-guide", "02-spec-driven-dev"]
+---
+
+Skills are the most powerful Claude Code feature that nobody is using to their full potential.
+
+A skill is a small, focused document that teaches Claude how to do *one specific thing well*. Not how your project is organized (that's CLAUDE.md). Not what your conventions are (that's the linter and CLAUDE.md). A skill teaches a *capability* — "here's the right way to write a database migration in this codebase" or "here's how to add a new API endpoint" or "here's how to debug a production incident."
+
+The reason most teams ignore skills: they look like CLAUDE.md but with extra steps. Once you see what skills actually replace, you don't go back.
+
+## What a skill actually is
+
+A skill is a directory with a `SKILL.md` file at minimum, sometimes with supporting files. Structurally:
+
+```
+.claude/skills/
+  add-api-endpoint/
+    SKILL.md
+    templates/
+      endpoint.py.template
+      test_endpoint.py.template
+  write-migration/
+    SKILL.md
+  debug-trade-rejection/
+    SKILL.md
+```
+
+The model auto-discovers these at the start of a session and **loads them only when relevant to the task at hand**. This is the critical difference from CLAUDE.md, which is loaded every turn of every session. Skills don't cost you tokens on tasks that don't need them.
+
+When you say "add an endpoint for fetching user balances," the model sees the `add-api-endpoint` skill is relevant, reads it, and follows it. When you say "fix the failing test," that skill stays out of context.
+
+## What makes a skill good
+
+Three properties, in order of importance.
+
+### 1. It encapsulates a *workflow*, not a fact
+
+A good skill walks the model through *doing* something. Not telling it about something.
+
+**Bad** (this is documentation):
+```
+# Migrations
+
+We use Alembic for database migrations. Migrations live in `db/migrations/`.
+The naming convention is `YYYYMMDD_HHMM_description.py`.
+```
+
+**Good** (this is a skill):
+```
+# Writing a database migration
+
+When the user asks for a schema change, do this:
+
+1. Check `db/migrations/` for recent migrations to copy the file pattern.
+2. Generate the file: `YYYYMMDD_HHMM_<verb>_<noun>.py`
+3. Use the template in `templates/migration.py.template`.
+4. Both `upgrade()` AND `downgrade()` must be implemented.
+   Downgrade must be tested to actually revert.
+5. After writing: run `pytest tests/db/` to verify the schema applies.
+6. Commit the migration file separately from any code that depends on it
+   (two commits, deploy migration first).
+```
+
+One is a fact sheet. The other is a procedure. The model can follow the procedure. It can't operationalize the fact sheet without inventing the missing steps.
+
+### 2. It's specific to one capability
+
+The temptation is to put all your database knowledge in one `database` skill. Resist. Skills should be narrow:
+
+- `write-migration` (just migrations)
+- `query-prod-db-safely` (just read-only investigation)
+- `add-db-index` (just indexes — has different concerns than migrations)
+
+Three small skills > one big one. The model only loads what's relevant, and narrow skills produce more focused work.
+
+### 3. It includes its own escape hatches
+
+The best skills explicitly tell the model what to do when something falls outside the skill's scope:
+
+```
+If the migration requires more than a column add/drop (table rename,
+data backfill, foreign key change), STOP and ask. Those need human
+sign-off because we've had production incidents from them.
+```
+
+Skills without escape hatches lead to the model confidently doing the wrong thing because the skill almost-matched the situation. Skills with escape hatches degrade gracefully.
+
+## What makes a skill useless
+
+The patterns I see most often:
+
+### "Style guide" skills
+
+A skill that says "use 4-space indentation and trailing commas" is doing nothing. Your linter handles that. Skills that just repeat what tools already enforce are pure overhead.
+
+### Skills that are just CLAUDE.md sections
+
+If a skill is just a list of project conventions, it belongs in CLAUDE.md. Skills are for *doing*. If it doesn't tell the model what steps to take when, it's not a skill.
+
+### Skills no one updates
+
+A skill that hasn't been touched in six months while the codebase moved on is worse than no skill — the model follows outdated instructions confidently. Quarterly review or delete.
+
+### One mega-skill called "everything"
+
+I have seen this exactly twice and it was painful both times. A 600-line SKILL.md that tries to cover every aspect of the project. The model can't focus on the relevant parts; output quality is poor. Break it up.
+
+## Three templates that work
+
+### Template 1: A workflow skill
+
+```markdown
+# <Capability name>
+
+## When to use this
+
+<One sentence describing the task this skill applies to.
+The model uses this to decide whether to load the skill.>
+
+## Required context
+
+<What the user must provide for this skill to work.
+What you'll need to gather before starting.>
+
+## The procedure
+
+1. <Step 1, concrete>
+2. <Step 2>
+3. <Step 3>
+
+## Validation
+
+<How to know it worked. Commands to run, things to check.>
+
+## Out of scope (stop and ask)
+
+- <Edge case that needs human judgment>
+- <Risky operation that shouldn't be done autonomously>
+```
+
+### Template 2: A debugging skill
+
+```markdown
+# Debugging <specific failure mode>
+
+## Symptom
+
+<What the user sees that means this skill applies.>
+
+## Likely causes (in order of probability)
+
+1. <Most common cause> — check by <command/file>
+2. <Second cause> — check by <command/file>
+3. <Third cause> — check by <command/file>
+
+## Diagnostic steps
+
+1. <Run this first>
+2. <Look for this output>
+3. <If you see X, the issue is Y>
+
+## Common fixes
+
+- For cause 1: <fix>
+- For cause 2: <fix>
+- For cause 3: <fix>
+
+## When to escalate
+
+If none of the above match the symptom, do NOT guess.
+Surface the diagnostic output and ask the user.
+```
+
+### Template 3: A code-generation skill
+
+```markdown
+# Adding a new <thing>
+
+## When to use this
+
+<One sentence: when the user asks for a new X.>
+
+## Template
+
+The pattern is in `templates/<thing>.template`.
+Copy this, fill in the marked fields, save to <location>.
+
+## Required modifications
+
+After copying:
+
+1. <Required edit 1>
+2. <Required edit 2>
+3. <Wire it up by editing <file>>
+
+## Tests
+
+Add a test in <path> following the pattern of <existing test>.
+The test must <specific requirement>.
+
+## Don't
+
+- Don't <common mistake>
+- Don't <another common mistake>
+```
+
+## Where to put the skill
+
+**User-level skills** (`~/.claude/skills/`) are personal. Skills you reuse across projects: "write a clean commit message," "debug a flaky pytest." These travel with you.
+
+**Project-level skills** (`.claude/skills/` in the repo) are shared with the team. They get committed, reviewed, and updated like any other code artifact. These are where the load-bearing organizational knowledge lives.
+
+Don't mix. A project skill in `~/.claude/` won't be discovered by your teammates. A user skill in the repo pollutes everyone's session for one person's preferences.
+
+## How to write a good one
+
+1. Pick a task you've done at least three times.
+2. Write down what you do, in order, the next time you do it. Step by step.
+3. Edit out the obvious things ("then I write the code"). Keep the non-obvious ones.
+4. Add escape hatches: "if X happens, stop."
+5. Use it for a week.
+6. Update it when you notice friction.
+
+Skills are not documentation. They're operationalized expertise. The best skills come from watching yourself do the work and writing down what you actually do — including the parts you don't think about.
+
+## When to skip skills entirely
+
+Solo projects. Throwaway code. Tasks you'll only do once.
+
+Skills earn their keep when *the same workflow happens often enough that consistency matters*. If you're going to add a database migration once a quarter, just write it. If you do it every week, write the skill.
+
+## The real value
+
+Once you have five or six good skills in a project, what happens is subtle but transformative: **the model stops asking the same setup questions every session.** It already knows how migrations work, how endpoints are added, how investigations are run. Sessions become about the actual problem, not about re-establishing the playbook every time.
+
+That compounding effect is why teams that invest in skills outpace teams that don't. The first skill takes 30 minutes to write. The hundredth task that uses it takes the model 30 minutes less to figure out.
+
+Start with one. Write it tomorrow. Pick a workflow you've done three times this week. Watch what changes.
