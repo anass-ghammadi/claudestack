@@ -1,89 +1,58 @@
 ---
-interface Product {
-  metaTag?: string;
-  title: string;
-  titleAccent?: string;
-  description: string;
-  features: string[];
-  price: string;
-  priceOld?: string;
-  ctaLabel: string;
-  ctaHref: string;
-  visualTitle?: string;
-}
+// SPEC: BRIEF_CLAUDESTACK_PRODUCT.md#1.1 — product copy from siteConfig.product
+import { siteConfig } from '../config/site';
 
-interface Props {
-  product?: Product;
-}
-
-const defaultProduct: Product = {
-  metaTag: 'LAUNCH_PRICE · 72H LEFT',
-  title: 'The complete guide to',
-  titleAccent: 'production Claude Code',
-  description:
-    '40 pages of patterns, workflows, and templates I use daily to ship serious projects. Multi-agent setups, SPEC-driven development, real-world case studies.',
-  features: [
-    'Multi-agent workflow templates (Spec / Dev / Auditor)',
-    'SKILL.md library — 12 production-tested skills',
-    'SPEC traceability system with copy-paste templates',
-    'Lifetime updates as Claude Code evolves',
-  ],
-  price: '$29',
-  priceOld: '$49',
-  ctaLabel: 'download_now.pdf',
-  ctaHref: 'https://gumroad.com/',
-  visualTitle: 'CLAUDE.md',
-};
-
-const { product = defaultProduct } = Astro.props;
+const product = siteConfig.product;
 ---
 
-<section class="product-section">
-  <div class="container">
-    <div class="product product-cornered">
-      <div>
-        {product.metaTag && (
-          <div class="product-meta">
-            <span class="product-meta-dot"></span>
-            {product.metaTag}
+{product && (
+  <section class="product-section">
+    <div class="container">
+      <div class="product product-cornered">
+        <div>
+          {product.metaTag && (
+            <div class="product-meta">
+              <span class="product-meta-dot"></span>
+              {product.metaTag}
+            </div>
+          )}
+          <h2>{product.title}<br /><span class="accent">{product.titleAccent}</span></h2>
+          <p class="product-desc">{product.description}</p>
+          <ul class="product-list">
+            {product.features.map((f) => <li>{f}</li>)}
+          </ul>
+          <div class="product-pricing">
+            <span class="price-label">PRICE</span>
+            <span class="price">{product.price}</span>
+            {product.priceOld && <span class="price-old">{product.priceOld}</span>}
           </div>
-        )}
-        <h2>{product.title}<br /><span class="accent">{product.titleAccent}</span></h2>
-        <p class="product-desc">{product.description}</p>
-        <ul class="product-list">
-          {product.features.map((f) => <li>{f}</li>)}
-        </ul>
-        <div class="product-pricing">
-          <span class="price-label">PRICE</span>
-          <span class="price">{product.price}</span>
-          {product.priceOld && <span class="price-old">{product.priceOld}</span>}
+          <a href={product.ctaHref} class="btn-primary" rel="noopener">{product.ctaLabel}</a>
         </div>
-        <a href={product.ctaHref} class="btn-primary" rel="noopener">{product.ctaLabel}</a>
-      </div>
-      <div class="product-visual">
-        <div class="pv-header">
-          <div class="terminal-dots">
-            <span></span><span></span><span></span>
+        <div class="product-visual">
+          <div class="pv-header">
+            <div class="terminal-dots">
+              <span></span><span></span><span></span>
+            </div>
+            <span style="margin-left: 8px;">{product.visualTitle}</span>
           </div>
-          <span style="margin-left: 8px;">{product.visualTitle}</span>
-        </div>
-        <div class="pv-body">
-          <div class="terminal-line terminal-comment"># Multi-agent orchestration</div>
-          <div class="terminal-line">&nbsp;</div>
-          <div class="terminal-line"><span class="terminal-keyword">## Mission</span></div>
-          <div class="terminal-line">You operate as the</div>
-          <div class="terminal-line"><span class="terminal-arg">orchestrator</span> between:</div>
-          <div class="terminal-line">&nbsp;</div>
-          <div class="terminal-line">  - <span class="terminal-success">spec-writer</span></div>
-          <div class="terminal-line">  - <span class="terminal-success">dev-agent</span></div>
-          <div class="terminal-line">  - <span class="terminal-success">auditor</span></div>
-          <div class="terminal-line">&nbsp;</div>
-          <div class="terminal-line"><span class="terminal-keyword">## Workflow</span></div>
-          <div class="terminal-line">Route each task through</div>
-          <div class="terminal-line">spec → build → audit.</div>
-          <div class="terminal-line">Never skip stages.<span class="terminal-cursor"></span></div>
+          <div class="pv-body">
+            <div class="terminal-line terminal-comment"># Multi-agent orchestration</div>
+            <div class="terminal-line">&nbsp;</div>
+            <div class="terminal-line"><span class="terminal-keyword">## Mission</span></div>
+            <div class="terminal-line">You operate as the</div>
+            <div class="terminal-line"><span class="terminal-arg">orchestrator</span> between:</div>
+            <div class="terminal-line">&nbsp;</div>
+            <div class="terminal-line">  - <span class="terminal-success">spec-writer</span></div>
+            <div class="terminal-line">  - <span class="terminal-success">dev-agent</span></div>
+            <div class="terminal-line">  - <span class="terminal-success">auditor</span></div>
+            <div class="terminal-line">&nbsp;</div>
+            <div class="terminal-line"><span class="terminal-keyword">## Workflow</span></div>
+            <div class="terminal-line">Route each task through</div>
+            <div class="terminal-line">spec → build → audit.</div>
+            <div class="terminal-line">Never skip stages.<span class="terminal-cursor"></span></div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+)}

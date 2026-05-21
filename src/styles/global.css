@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* SPEC: BRIEF_CLAUDESTACK_PRODUCT.md#1.2 — theme tokens (terminal/amber/cyan) */
+@import "./themes.css";
+
 /* === Self-hosted fonts (kills render-blocking Google Fonts request) === */
 @import "@fontsource/inter-tight/400.css";
 @import "@fontsource/inter-tight/500.css";
@@ -13,27 +16,10 @@
 /* ============================================================
    ClaudeStack — Terminal Brutalist Design System
    Source of truth: references/direction-1-responsive.html
+   Color tokens live in themes.css (above). Below = layout + spacing only.
    ============================================================ */
 
 :root {
-  --bg: #000000;
-  --bg-1: #0A0A0A;
-  --bg-2: #111111;
-  --bg-3: #1A1A1A;
-  --line: #222222;
-  --line-bright: #2E2E2E;
-  --text: #EDEDED;
-  --text-soft: #999999;
-  --text-dim: #8a8a8a;
-  --text-faint: #555555;
-  --green: #00FF66;
-  --green-glow: rgba(0, 255, 102, 0.15);
-  --green-dim: rgba(0, 255, 102, 0.5);
-  --cyan: #00E5FF;
-  --violet: #B794F4;
-  --mono: 'JetBrains Mono', 'Courier New', monospace;
-  --sans: 'Inter Tight', -apple-system, sans-serif;
-
   --gutter: 16px;
   --section-pad: 56px;
   --container-max: 1280px;

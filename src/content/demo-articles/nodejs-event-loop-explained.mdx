@@ -1,0 +1,141 @@
+---
+title: "Understanding the Node.js Event Loop"
+description: "What the event loop actually does, the six phases you need to know, and the most common ways code accidentally blocks it."
+pubDate: 2025-11-08
+author: "Jane Developer"
+tags: ["nodejs", "javascript", "performance"]
+isDemo: true
+---
+
+The Node.js event loop is one of those topics where the official docs assume you've already read the Wikipedia article on concurrency. Here's the version that would have saved me a year of confusion.
+
+## What the event loop actually is
+
+JavaScript is single-threaded. There is exactly one call stack executing your code at any moment. But Node still serves thousands of concurrent connections without forking threads per request.
+
+The trick: Node delegates I/O to the operating system, returns control immediately, and runs a continuous loop that picks up completed I/O results and runs the callbacks you registered for them.
+
+That loop is the event loop.
+
+## The six phases
+
+Every tick of the event loop goes through six phases in order:
+
+1. **Timers** — runs callbacks scheduled by `setTimeout` / `setInterval` whose time has elapsed.
+2. **Pending callbacks** — runs some system-level callbacks (mostly TCP errors).
+3. **Idle, prepare** — internal use only.
+4. **Poll** — retrieves new I/O events; runs their callbacks. This is where most of your code actually runs.
+5. **Check** — runs `setImmediate` callbacks.
+6. **Close callbacks** — runs `'close'` event callbacks (e.g., `socket.on('close', ...)`).
+
+Between every phase, Node also runs:
+- **`process.nextTick` queue** — the highest priority. Runs before the next phase.
+- **Microtasks** (resolved promises) — runs immediately after `nextTick`.
+
+This ordering matters more than you'd think.
+
+## The classic confusion: setTimeout vs setImmediate
+
+```js
+setTimeout(() => console.log('timeout'), 0);
+setImmediate(() => console.log('immediate'));
+```
+
+Which runs first? **It depends.** If this code is in the main module, the order is non-deterministic (depends on how long Node took to set up). If it's inside an I/O callback, `setImmediate` always wins, because the event loop is already past Timers and in Check on its next phase.
+
+The fix when ordering matters: use `process.nextTick` (always before the next phase) or chain explicit promises.
+
+## How to actually block the event loop
+
+The single thread can do exactly one thing at a time. If you spend 800ms in a synchronous loop, every other request waits 800ms.
+
+Common culprits:
+
+**Big JSON parses**:
+```js
+const data = JSON.parse(huge_string); // blocks until done
+```
+
+**Synchronous file reads**:
+```js
+const config = fs.readFileSync('large.json'); // blocks
+```
+
+**Crypto on the main thread**:
+```js
+crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512'); // blocks ~50ms
+```
+
+**Heavy regex on user input**:
+```js
+/^(a+)+$/.test(userString); // can be exponential. blocks for seconds.
+```
+
+**Tight loops over arrays**:
+```js
+for (let i = 0; i < bigArray.length; i++) { /* expensive work */ }
+```
+
+Each of these stalls every other request. On a server handling 200 RPS, an 80ms block means ~16 requests get a 80ms latency tax they did nothing to deserve.
+
+## How to fix blocked event loops
+
+Three approaches, in order of preference:
+
+**1. Find an async API.** Most stdlib has an async version: `fs.readFile`, `crypto.pbkdf2`, etc. Use them.
+
+**2. Worker threads** for CPU-bound work:
+```js
+const { Worker } = require('worker_threads');
+const worker = new Worker('./parse-worker.js');
+worker.postMessage(huge_data);
+worker.on('message', (result) => { /* ... */ });
+```
+
+The work happens off-thread. Your event loop stays responsive.
+
+**3. Chunk and yield.** Split big synchronous work into chunks, yield to the event loop between them:
+
+```js
+async function processInChunks(items) {
+  for (let i = 0; i < items.length; i += 100) {
+    const chunk = items.slice(i, i + 100);
+    chunk.forEach(processOne);
+    await new Promise(setImmediate); // yield to event loop
+  }
+}
+```
+
+Crude but effective for batch jobs that must run on the main thread.
+
+## Detecting event loop lag
+
+In production, monitor it:
+
+```js
+const start = process.hrtime.bigint();
+setImmediate(() => {
+  const lag = Number(process.hrtime.bigint() - start) / 1e6;
+  metrics.gauge('event_loop_lag_ms', lag);
+});
+```
+
+Run this every few seconds. Lag should be under 10ms steady-state, under 100ms p99. If you see numbers in the hundreds, something is blocking. Hunt it.
+
+## The right mental model
+
+Node is *not* multithreaded for your JavaScript. It's "I/O multiplexed." All your JS runs on one thread; the OS does the actual concurrent I/O.
+
+This is why Node is great for I/O-bound workloads (web servers, proxies, real-time chat) and bad for CPU-bound workloads (image processing, ML inference). Picking the right tool for the workload matters more than tuning the wrong one.
+
+## Quick checklist
+
+- ✅ Use async APIs everywhere by default
+- ✅ Move CPU work to worker threads
+- ✅ Monitor event loop lag in production
+- ✅ Be suspicious of regexes that grow with input length
+- ❌ Never `fs.readFileSync` in request handlers
+- ❌ Never run user-input regex without timeouts
+- ❌ Don't run `JSON.parse` on multi-MB strings on the main thread
+
+Get these right and you'll have a Node service that holds up.

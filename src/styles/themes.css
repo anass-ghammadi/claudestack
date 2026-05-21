@@ -1,0 +1,102 @@
+/*
+ * SPEC: BRIEF_CLAUDESTACK_PRODUCT.md#1.2 — 3 themes (terminal, amber, cyan)
+ *
+ * Each theme defines:
+ *   - 8 brief-spec --color-* vars (for new components / template buyers' familiarity)
+ *   - Full legacy --bg/--text/--green/--line/etc. vars (for existing components)
+ *
+ * Both sets stay in sync so components written either way work in all themes.
+ * --cyan and --violet (category accents) stay constant across themes.
+ *
+ * Default is "terminal". Override via <html data-theme="amber" | "cyan">.
+ */
+
+:root,
+[data-theme="terminal"] {
+  /* Brief spec */
+  --color-primary: #00FF66;
+  --color-primary-glow: rgba(0, 255, 102, 0.4);
+  --color-bg: #000000;
+  --color-surface: #0A0A0A;
+  --color-text: #EDEDED;
+  --color-text-muted: #8a8a8a;
+  --color-border: #222222;
+  --color-accent: #00FF66;
+
+  /* Legacy aliases — components consume these */
+  --bg: #000000;
+  --bg-1: #0A0A0A;
+  --bg-2: #111111;
+  --bg-3: #1A1A1A;
+  --line: #222222;
+  --line-bright: #2E2E2E;
+  --text: #EDEDED;
+  --text-soft: #999999;
+  --text-dim: #8a8a8a;
+  --text-faint: #555555;
+  --green: #00FF66;
+  --green-glow: rgba(0, 255, 102, 0.15);
+  --green-dim: rgba(0, 255, 102, 0.5);
+}
+
+[data-theme="amber"] {
+  /* Brief spec */
+  --color-primary: #FFB627;
+  --color-primary-glow: rgba(255, 182, 39, 0.4);
+  --color-bg: #0A0705;
+  --color-surface: #14100A;
+  --color-text: #F5E6D3;
+  --color-text-muted: #8A7A60;
+  --color-border: #2A1F10;
+  --color-accent: #FFB627;
+
+  /* Legacy aliases */
+  --bg: #0A0705;
+  --bg-1: #14100A;
+  --bg-2: #1F180F;
+  --bg-3: #2A2014;
+  --line: #2A1F10;
+  --line-bright: #3A2D18;
+  --text: #F5E6D3;
+  --text-soft: #C9B493;
+  --text-dim: #8A7A60;
+  --text-faint: #5A4B36;
+  --green: #FFB627;
+  --green-glow: rgba(255, 182, 39, 0.15);
+  --green-dim: rgba(255, 182, 39, 0.5);
+}
+
+[data-theme="cyan"] {
+  /* Brief spec */
+  --color-primary: #00D9FF;
+  --color-primary-glow: rgba(0, 217, 255, 0.4);
+  --color-bg: #050810;
+  --color-surface: #0A0F1F;
+  --color-text: #E0F0FF;
+  --color-text-muted: #7090B0;
+  --color-border: #15203F;
+  --color-accent: #00D9FF;
+
+  /* Legacy aliases */
+  --bg: #050810;
+  --bg-1: #0A0F1F;
+  --bg-2: #0F162C;
+  --bg-3: #15203F;
+  --line: #15203F;
+  --line-bright: #1F2D55;
+  --text: #E0F0FF;
+  --text-soft: #B0C6E0;
+  --text-dim: #7090B0;
+  --text-faint: #455F80;
+  --green: #00D9FF;
+  --green-glow: rgba(0, 217, 255, 0.15);
+  --green-dim: rgba(0, 217, 255, 0.5);
+}
+
+/* Constant across all themes — category badge accents */
+:root {
+  --cyan: #00E5FF;
+  --violet: #B794F4;
+  --mono: 'JetBrains Mono', 'Courier New', monospace;
+  --sans: 'Inter Tight', -apple-system, sans-serif;
+}

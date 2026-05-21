@@ -1,0 +1,6 @@
+# SPEC: BRIEF_CLAUDESTACK_PRODUCT.md#1.3.b — 301 redirects for the /articles → /blog migration
+# Preserves SEO juice from any pages Google already indexed under the old path.
+# Cloudflare Pages/Workers static-assets reads this file from /public at deploy time.
+
+/articles/* /blog/:splat 301
+/articles /blog 301

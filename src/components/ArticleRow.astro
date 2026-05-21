@@ -5,7 +5,7 @@ import { formatDate } from '../lib/format-date';
 import { readingTime } from '../lib/reading-time';
 
 interface Props {
-  article: CollectionEntry<'articles'>;
+  article: CollectionEntry<'blog'>;
   num: number;
 }
 
@@ -15,7 +15,7 @@ const time = readingTime(article.body ?? '');
 const numLabel = `№ ${String(num).padStart(3, '0')}`;
 ---
 
-<a class="article-row" href={`/articles/${article.id}`}>
+<a class="article-row" href={`/blog/${article.id}`}>
   <div class="article-row-header">
     <div class="article-num">{numLabel}</div>
     <CategoryBadge category={category} />

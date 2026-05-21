@@ -1,19 +1,48 @@
 ---
-import { siteConfig } from '../lib/site-config';
+// SPEC: BRIEF_CLAUDESTACK_PRODUCT.md#1.1 + #1.4 — nav + theme switcher in drawer
+import ThemeSwitcher from './ThemeSwitcher.astro';
+import { siteConfig } from '../config/site';
+
+const subsCount = siteConfig.newsletter.subscriberCount;
 ---
 
 <div class="nav-mobile-overlay" id="navOverlay"></div>
 <aside class="nav-mobile" id="navMobile" aria-label="Mobile menu">
-  {siteConfig.navLinks.map((link) => (
+  {siteConfig.nav.map((link) => (
     <a href={link.href}>{link.label}</a>
   ))}
-  <a href="/articles">archive</a>
-  <a href="#newsletter" class="mobile-cta">SUBSCRIBE</a>
+  {siteConfig.newsletter.enabled && (
+    <a href="#newsletter" class="mobile-cta">SUBSCRIBE</a>
+  )}
+  {siteConfig.features.themeSwitcher && (
+    <div class="nav-mobile-theme">
+      <span class="nav-mobile-theme-label">// theme</span>
+      <ThemeSwitcher />
+    </div>
+  )}
   <div class="nav-mobile-meta">
-    <span>{siteConfig.stats.subs} subscribers</span>
+    {subsCount && <span>{subsCount} subscribers</span>}
     <span>{siteConfig.version} — online</span>
   </div>
 </aside>
+
+<style>
+  .nav-mobile-theme {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .nav-mobile-theme-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+</style>
 
 <script>
   const toggle = document.getElementById('navToggle');

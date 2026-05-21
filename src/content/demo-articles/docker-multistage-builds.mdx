@@ -1,0 +1,142 @@
+---
+title: "Docker Multi-Stage Builds Explained"
+description: "Cut your image size by 90%, hide build secrets, and ship lean production images. Multi-stage builds in 700 words."
+pubDate: 2025-09-14
+author: "Jane Developer"
+tags: ["docker", "devops", "production"]
+isDemo: true
+---
+
+If your Docker image for a compiled language is larger than 100MB, you're probably not using multi-stage builds. They cut my Go service from 950MB to 18MB without changing a line of application code. Here's how they work.
+
+## The problem
+
+A naive Dockerfile builds and runs in the same image:
+
+```dockerfile
+FROM golang:1.22
+WORKDIR /app
+COPY . .
+RUN go build -o server .
+CMD ["./server"]
+```
+
+The final image contains the entire Go toolchain (~800MB) just to run a static binary that's 12MB. Same for Node (npm + node_modules + sources + dev deps), Java (JDK vs JRE), Rust (cargo + rustc + sources)…
+
+You're shipping a build environment to production. That's slow to pull, expensive to store, and a larger attack surface than needed.
+
+## Multi-stage: the fix
+
+```dockerfile
+# Stage 1: build
+FROM golang:1.22 AS builder
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 go build -o /out/server .
+
+# Stage 2: run
+FROM gcr.io/distroless/static:nonroot
+COPY --from=builder /out/server /
+USER nonroot
+CMD ["/server"]
+```
+
+Two `FROM` directives = two stages. Only the *last* stage becomes the final image. The first stage is discarded.
+
+Result: an 18MB image containing nothing but the binary and the minimal runtime. The `golang:1.22` builder image is used during build but never shipped.
+
+## What `--from=builder` does
+
+The magic line. It copies a file from a previous named stage into the current one. You can copy from any earlier stage — by name (`--from=builder`) or by index (`--from=0`).
+
+This is how artifacts cross the stage boundary. Build outputs in stage 1, final binary in stage 2.
+
+## Caching layers properly
+
+The order of operations matters for cache reuse. Bad:
+
+```dockerfile
+COPY . .
+RUN go mod download   # cache busted every time code changes
+RUN go build .
+```
+
+Good:
+
+```dockerfile
+COPY go.mod go.sum ./
+RUN go mod download   # only re-runs when go.mod/go.sum change
+COPY . .
+RUN go build .
+```
+
+The principle: copy files in order of how often they change, least-often first. Dependencies change rarely → copy those first → cache them. Source code changes constantly → copy last.
+
+This pattern is the same for Node (`package.json` first, then source), Python (`requirements.txt` first), Rust (`Cargo.toml` first).
+
+## Distroless / scratch — the smallest possible base
+
+Three options for the final stage:
+
+- **`FROM alpine`** — 5MB base. Has a shell, basic utilities. Good default.
+- **`FROM gcr.io/distroless/static:nonroot`** — 2MB base. No shell, no package manager. Only what your binary needs.
+- **`FROM scratch`** — 0MB base. Nothing. Only works for fully static binaries.
+
+For Go with `CGO_ENABLED=0`, you can use `scratch` and ship a literal 12MB image with one file. For dynamic binaries, distroless is the right balance.
+
+## Multiple build stages
+
+Stages can build on each other. Useful for languages with separate compile steps:
+
+```dockerfile
+FROM node:20 AS deps
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+FROM node:20 AS builder
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM gcr.io/distroless/nodejs20-debian12 AS runner
+COPY --from=deps /node_modules ./node_modules
+COPY --from=builder /dist ./dist
+CMD ["dist/server.js"]
+```
+
+Three stages: install prod deps, build with all deps, final stage gets prod deps + build output. Final image is tiny and contains no devDependencies, no source TS, no test fixtures.
+
+## Bonus: build secrets
+
+If your build needs a private npm token or SSH key, use BuildKit's `--secret`:
+
+```dockerfile
+# syntax=docker/dockerfile:1.4
+FROM node:20
+RUN --mount=type=secret,id=npm_token \
+    npm config set //registry.npmjs.org/:_authToken=$(cat /run/secrets/npm_token) && \
+    npm ci
+```
+
+```bash
+docker build --secret id=npm_token,env=NPM_TOKEN -t my-app .
+```
+
+The secret is mounted only during that RUN, never persisted to any layer. The final image contains no trace.
+
+## What I check before deploying any image
+
+1. `docker images` — is the size reasonable? Under 50MB for compiled, under 300MB for interpreted.
+2. `docker history my-app:latest` — what's in each layer? Anything surprising?
+3. `docker run my-app:latest sh` — does it fail? Good (no shell in production).
+
+## What I don't bother with
+
+- Building the smallest possible image at all costs. Going from 20MB to 5MB rarely matters; going from 950MB to 20MB always does.
+- Compressing layers with custom tools. Docker already compresses.
+- Stripping all symbols / `-w -s` on Go binaries. Saves ~15% size, makes panics harder to debug. Not worth it for production unless you have other observability.
+
+Multi-stage is one of those Docker features that takes 10 minutes to understand and saves you forever after. If your Dockerfile is still single-stage, fix that today.

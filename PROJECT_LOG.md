@@ -7,7 +7,7 @@
 
 ## Current state (snapshot)
 
-**Status**: Live in production.
+**Status**: Phase 1 of product-packaging complete locally (not yet pushed). Pending operator approval before Phase 2.
 
 | Item | Value |
 |---|---|
@@ -16,25 +16,32 @@
 | GitHub repo | https://github.com/anass-ghammadi/claudestack |
 | Hosting | Cloudflare (Workers static assets via wrangler.jsonc) |
 | Stack | Astro 6 + Tailwind 4 + MDX + TypeScript strict |
-| Lighthouse (desktop) | 100 / 95+ / 100 / 100 (perf / a11y / best / SEO) |
-| Articles published | 12 |
-| Total words of content | ~16,000 |
-| Last commit | `550d0c0` (publish 4 trending articles) |
+| Lighthouse (desktop) | 100 / 95+ / 100 / 100 (perf / a11y / best / SEO) — needs re-verify after Phase 1 push |
+| Blog articles | 12 (Anass, moved to `/blog/*` from `/articles/*`) |
+| Demo articles | 8 (Jane Developer, `/demo/*`, noindex) |
+| Themes | 3 (terminal default, amber, cyan) with switcher in header + mobile menu |
+| Rollback branch | `pre-product-packaging` (pushed) |
+| Last pushed commit | `2972a1d` (add PROJECT_LOG.md) |
 
 ---
 
 ## What works right now
 
 - ✅ Static site builds & deploys on every push to `main`
-- ✅ All 12 articles render with Shiki syntax highlighting + reading time + related articles
-- ✅ Dynamic OG images per article (Satori → 1200×630 PNG, generated at build)
-- ✅ RSS feed at `/rss.xml`, sitemap at `/sitemap-index.xml`, `robots.txt`
-- ✅ Schema.org JSON-LD: Article + FAQPage on every article
-- ✅ Pagefind search index at `/articles`
-- ✅ Newsletter form wired to Buttondown (username `claudestack`)
-- ✅ Self-hosted fonts (no Google Fonts request, no privacy leak)
-- ✅ Google Search Console verification meta tag deployed
-- ✅ Mobile-responsive, dark-only Terminal Brutalist design
+- ✅ 12 blog articles at `/blog/*` (migrated from `/articles/*` with 301 redirects)
+- ✅ 8 demo articles at `/demo/*` showcasing template capabilities (Jane Developer)
+- ✅ 3 themes (terminal default, amber, cyan) with localStorage-persisted switcher
+- ✅ Two distinct content collections enforced at schema level
+- ✅ DEMO banner on every `/demo` route with link back to `/blog`
+- ✅ Home page lists ONLY blog content (never demo) + empty-state handling
+- ✅ All site copy driven by `src/config/site.ts` (zero hardcoded strings in components)
+- ✅ Dynamic OG images per blog article (Satori → 1200×630 PNG, generated at build)
+- ✅ RSS feed at `/rss.xml` (blog only, demo excluded), sitemap, `robots.txt`
+- ✅ Schema.org JSON-LD: Article + FAQPage on every blog article
+- ✅ Pagefind search index on `/blog` (12 blog pages indexed; demo excluded by design)
+- ✅ Newsletter wired to Buttondown via provider-agnostic config
+- ✅ Self-hosted fonts, Google Search Console verified
+- ✅ Mobile-responsive, multi-theme, accessible (WCAG AA contrast)
 
 ## What's pending (operator action)
 
@@ -157,6 +164,20 @@ Distribution: 6 essays / 3 patterns / 3 guides.
 
 ## Change history
 
+### 2026-05-21 — Phase 1 of product-packaging brief complete (local)
+- Created rollback branch `pre-product-packaging` (pushed to remote)
+- **1.1** Extracted all site copy into `src/config/site.ts` with typed schema (nav, footer, newsletter, features, SEO, analytics, hero, product, about). Deleted `src/lib/site-config.ts`. Validation gate: grep for spec-specific strings in components/pages/layouts returns empty ✓
+- **1.2** New `src/styles/themes.css` defines 3 themes (terminal/amber/cyan) via `[data-theme]` attribute. Both the brief's `--color-*` vars AND the legacy `--bg/--text/--green` etc. vars are theme-aware ✓
+- **1.3.a** Content collections refactored: `blog` (real content) + `demo-articles` (Jane Developer showcase) with `isDemo: true` discriminator
+- **1.3.b** Moved 12 articles from `src/content/articles/` → `src/content/blog/`. Routes moved from `/articles/*` to `/blog/*`. `public/_redirects` 301s old URLs for SEO preservation
+- **1.3.c** Wrote 8 demo articles by Jane Developer (~6500 words): CLI in Go, REST vs GraphQL, Node event loop, Type-safe forms with Zod, Postgres FTS, Docker multi-stage, Feature flags, Vite bundle optimization
+- **1.3.d** New `/demo` route + `DemoLayout`; nav updated to expose Blog/Demo/Pricing/GitHub; `/pricing` placeholder page with two tiers (Free + Pro $49)
+- **1.3.e** `DemoBanner` component shown on all `/demo` routes — drives traffic back to `/blog`
+- **1.3.f** Home page lists ONLY blog posts; empty-state handling for template buyers
+- **1.4** `ThemeSwitcher` component in header (desktop) + mobile menu; localStorage persistence, inline pre-paint script to avoid flash of wrong theme
+- Build: 54 HTML pages, Pagefind indexes 12 blog pages only (correct)
+- **Not yet pushed** — awaits operator approval before Phase 2
+
 ### 2026-05-16 — Trending batch + project log
 - Published 4 trending articles: #9 subagents, #10 vibe coding, #11 PR review case study, #12 SKILL.md guide (commit `550d0c0`)
 - Created this PROJECT_LOG.md
@@ -217,6 +238,21 @@ Distribution: 6 essays / 3 patterns / 3 guides.
 ---
 
 ## Key decisions log
+
+### Site pivot: personal blog → sellable template + personal blog
+**Decision**: Refactor the existing personal blog into a dual-purpose site — template demo (for sale) + author's real SEO content (for traffic and authority). Two separate content collections, two separate route trees.
+**Why:** The brief from 2026-05-18 (v1.1 of `logclaudfare`) reframes the site as a Gumroad product. To avoid losing the existing 12 articles + their Google indexing, we keep them as `blog/` content with 301 redirects from old paths.
+**Impact:** Architecture now has clean separation: `/blog/*` for Anass, `/demo/*` for showcase, never mixed. RSS only carries blog. Home page only lists blog.
+
+### 301 redirects via Cloudflare _redirects
+**Decision**: `public/_redirects` does `/articles/* → /blog/:splat 301` to preserve SEO.
+**Why:** Anass's 12 articles were indexed (or starting to be) at `/articles/*`. Migrating without redirects = losing all that SEO equity.
+**Impact:** Old URLs forever redirect to new ones. Search engines update their index over the next crawl cycle.
+
+### Config schema extended beyond brief spec
+**Decision**: Extended `siteConfig` beyond what the brief specified to preserve existing integrations: `buttondown` as newsletter provider, `cloudflareToken` for analytics, `googleSiteVerification` for GSC, `hero` block, `product` block, `about` block.
+**Why:** Brief's minimal schema would have meant losing functionality already shipped (Phase 5 SEO + Phase 3 Newsletter wiring).
+**Impact:** Template buyers get a more complete config out of the box. Brief's 8 base vars still present at the root.
 
 ### Astro 6 vs Astro 5
 **Decision**: Stay on Astro 6 (latest stable as of build time).

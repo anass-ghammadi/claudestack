@@ -1,6 +1,6 @@
 import type { CollectionEntry } from 'astro:content';
 
-type Article = CollectionEntry<'articles'>;
+type Article = CollectionEntry<'blog'>;
 
 export function getRelated(current: Article, all: Article[], limit = 3): Article[] {
   const overrides = current.data.relatedSlugs ?? [];

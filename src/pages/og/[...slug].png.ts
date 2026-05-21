@@ -1,9 +1,13 @@
+// SPEC: BRIEF_CLAUDESTACK_PRODUCT.md#1.1 — brand label from siteConfig
 import type { APIRoute, GetStaticPaths } from 'astro';
 import { getCollection } from 'astro:content';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { siteConfig } from '../../config/site';
+
+const brandLabel = siteConfig.name.toLowerCase();
 
 const interTightBold = readFileSync(
   fileURLToPath(
@@ -58,7 +62,7 @@ function buildTree({ title, category, date, isDefault }: OgInputs) {
     'div',
     { display: 'flex', color: COLORS.text, fontFamily: 'JetBrains Mono', fontSize: '22px' },
     el('span', { color: COLORS.green, display: 'flex' }, '['),
-    el('span', { color: COLORS.text, display: 'flex' }, 'claudestack'),
+    el('span', { color: COLORS.text, display: 'flex' }, brandLabel),
     el('span', { color: COLORS.green, display: 'flex' }, ']'),
   );
 
@@ -167,7 +171,7 @@ async function renderPng(inputs: OgInputs): Promise<Uint8Array> {
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const articles = await getCollection('articles', (e) => !e.data.draft);
+  const articles = await getCollection('blog', (e) => !e.data.draft);
   return [
     { params: { slug: 'default' }, props: { article: null } },
     ...articles.map((article) => ({
@@ -185,7 +189,7 @@ export const GET: APIRoute = async ({ props }) => {
         category: article.data.category,
         date: new Date(article.data.pubDate).toISOString().split('T')[0]!.replace(/-/g, '.'),
       }
-    : { title: 'claudestack', isDefault: true };
+    : { title: brandLabel, isDefault: true };
 
   const png = await renderPng(inputs);
 

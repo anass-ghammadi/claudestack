@@ -1,4 +1,5 @@
 ---
+// SPEC: BRIEF_CLAUDESTACK_PRODUCT.md#1.3.f — home lists ONLY blog posts (never demo)
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
@@ -8,11 +9,12 @@ import ArticleList from '../components/ArticleList.astro';
 import ProductCard from '../components/ProductCard.astro';
 import Newsletter from '../components/Newsletter.astro';
 
-const articles = (await getCollection('articles', (e) => !e.data.draft)).sort(
+const articles = (await getCollection('blog', (e) => !e.data.draft)).sort(
   (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime(),
 );
 
 const latest = articles.slice(0, 5);
+const hasContent = latest.length > 0;
 ---
 
 <BaseLayout>
@@ -28,17 +30,83 @@ const latest = articles.slice(0, 5);
           <h2>Recent <span class="accent">field reports</span></h2>
         </div>
         <div class="section-head-filters">
-          <a class="filter-pill active" href="/articles">all</a>
+          <a class="filter-pill active" href="/blog">all</a>
           <a class="filter-pill" href="/categories/essays">essays</a>
           <a class="filter-pill" href="/categories/patterns">patterns</a>
           <a class="filter-pill" href="/categories/guides">guides</a>
         </div>
       </div>
 
-      <ArticleList articles={latest} startNum={articles.length} />
+      {hasContent ? (
+        <ArticleList articles={latest} startNum={articles.length} />
+      ) : (
+        <div class="empty-blog">
+          <div class="empty-blog-meta">$ ls blog/</div>
+          <h3>First articles coming soon</h3>
+          <p>
+            Subscribe to the newsletter below to get notified when the first essays land.
+            Or try the template demo to see how published articles will look.
+          </p>
+          <a class="btn-secondary" href="/demo">Try the template demo →</a>
+        </div>
+      )}
+
+      {hasContent && (
+        <div class="try-demo-cta">
+          <span>Building your own?</span>
+          <a href="/demo">Try the template demo →</a>
+        </div>
+      )}
     </div>
   </section>
 
   <ProductCard />
   <Newsletter />
 </BaseLayout>
+
+<style>
+  .empty-blog {
+    border: 1px solid var(--line);
+    background: var(--bg-1);
+    padding: 32px;
+    text-align: center;
+    font-family: var(--mono);
+    color: var(--text-soft);
+  }
+
+  .empty-blog-meta {
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: 0.1em;
+    margin-bottom: 14px;
+  }
+
+  .empty-blog h3 {
+    font-family: var(--sans);
+    font-size: 22px;
+    color: var(--text);
+    margin-bottom: 14px;
+  }
+
+  .empty-blog p {
+    max-width: 480px;
+    margin: 0 auto 20px;
+    line-height: 1.6;
+  }
+
+  .try-demo-cta {
+    margin-top: 24px;
+    text-align: right;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .try-demo-cta a {
+    color: var(--green);
+    text-decoration: none;
+    margin-left: 12px;
+  }
+
+  .try-demo-cta a:hover { text-decoration: underline; }
+</style>

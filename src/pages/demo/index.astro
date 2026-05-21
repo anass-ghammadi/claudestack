@@ -1,0 +1,55 @@
+---
+// SPEC: BRIEF_CLAUDESTACK_PRODUCT.md#1.3.d — demo articles showcase index
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import DemoBanner from '../../components/DemoBanner.astro';
+import { formatDate } from '../../lib/format-date';
+import { readingTime } from '../../lib/reading-time';
+
+const demos = (await getCollection('demo-articles', (e) => !e.data.draft)).sort(
+  (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime(),
+);
+---
+
+<BaseLayout
+  title="Template Demo"
+  description="Showcase content demonstrating the template's design and capabilities."
+  noindex
+>
+  <section class="articles-section">
+    <div class="container">
+      <div class="section-head">
+        <div class="section-head-left">
+          <div class="section-head-meta">DEMO · {demos.length} SHOWCASE ARTICLES</div>
+          <h2>The <span class="accent">template demo</span></h2>
+        </div>
+      </div>
+
+      <DemoBanner />
+
+      <div class="articles-list">
+        {demos.map((demo) => {
+          const time = readingTime(demo.body ?? '');
+          return (
+            <a class="article-row" href={`/demo/${demo.id}`}>
+              <div class="article-row-header">
+                <span class="article-cat">DEMO</span>
+              </div>
+              <div class="article-title">
+                <h3>{demo.data.title}</h3>
+                <p>// {demo.data.description}</p>
+              </div>
+              <div class="article-row-footer">
+                <div class="article-row-footer-left">
+                  <span class="article-date">{formatDate(demo.data.pubDate)}</span>
+                  <span class="article-time">{time.label}</span>
+                </div>
+                <span class="article-arrow">→</span>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+</BaseLayout>

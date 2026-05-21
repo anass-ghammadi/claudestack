@@ -1,0 +1,166 @@
+---
+title: "Type-Safe Forms with Zod and React Hook Form"
+description: "Stop validating forms twice. One Zod schema gives you runtime validation and TypeScript types, wired through React Hook Form for the editor experience."
+pubDate: 2025-10-19
+author: "Jane Developer"
+tags: ["typescript", "react", "zod", "forms"]
+isDemo: true
+---
+
+Forms are the place where most React apps still ship runtime bugs. You add a field, you forget to update the type, the validation passes, the API rejects the payload, and you get a Sentry alert at 2am.
+
+The combination of Zod + React Hook Form + `@hookform/resolvers/zod` solves this once and for all: one schema, runtime-validated, type-inferred, IDE-aware.
+
+## Setup
+
+```bash
+npm install react-hook-form zod @hookform/resolvers
+```
+
+## The schema is the source of truth
+
+```ts
+import { z } from "zod";
+
+export const signupSchema = z.object({
+  email: z.string().email("Invalid email"),
+  password: z.string().min(8, "At least 8 characters"),
+  age: z.coerce.number().int().min(13, "Must be 13 or older"),
+  newsletter: z.boolean().default(false),
+});
+
+export type SignupForm = z.infer<typeof signupSchema>;
+```
+
+`SignupForm` is now a TypeScript type derived from the schema. No drift possible. Add a field to the schema → type updates instantly.
+
+## Wire it to React Hook Form
+
+```tsx
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { signupSchema, type SignupForm } from "./schema";
+
+function SignupForm() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<SignupForm>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: { newsletter: false },
+  });
+
+  const onSubmit = async (data: SignupForm) => {
+    await fetch("/api/signup", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <label>
+        Email
+        <input {...register("email")} type="email" />
+      </label>
+      {errors.email && <span>{errors.email.message}</span>}
+
+      <label>
+        Password
+        <input {...register("password")} type="password" />
+      </label>
+      {errors.password && <span>{errors.password.message}</span>}
+
+      <label>
+        Age
+        <input {...register("age")} type="number" />
+      </label>
+      {errors.age && <span>{errors.age.message}</span>}
+
+      <label>
+        <input {...register("newsletter")} type="checkbox" />
+        Subscribe to newsletter
+      </label>
+
+      <button disabled={isSubmitting}>Sign up</button>
+    </form>
+  );
+}
+```
+
+That's it. Submit handler receives a fully-typed `SignupForm` object. Validation runs on submit (configurable to `onChange` if you want). Errors are typed — `errors.email.message` works in autocomplete.
+
+## Use the same schema on the server
+
+If your backend is also TypeScript:
+
+```ts
+// api/signup.ts
+import { signupSchema } from "../shared/schema";
+
+export async function POST(req: Request) {
+  const body = await req.json();
+  const result = signupSchema.safeParse(body);
+  if (!result.success) {
+    return new Response(JSON.stringify(result.error.format()), { status: 400 });
+  }
+  // result.data is fully typed
+  await createUser(result.data);
+  return new Response("ok");
+}
+```
+
+One schema, two places, no drift. The client validates for UX; the server validates for security. They can't disagree.
+
+## Conditional validation
+
+When the password field is only required for one signup mode:
+
+```ts
+const schema = z
+  .object({
+    mode: z.enum(["password", "sso"]),
+    password: z.string().optional(),
+  })
+  .refine(
+    (data) => data.mode !== "password" || (data.password && data.password.length >= 8),
+    { message: "Password required", path: ["password"] }
+  );
+```
+
+`.refine` adds custom rules across multiple fields. The `path` tells React Hook Form which field to attach the error to.
+
+## Transforms
+
+Zod can also normalize data on parse:
+
+```ts
+const schema = z.object({
+  email: z.string().email().transform((v) => v.toLowerCase().trim()),
+  tags: z.string().transform((v) => v.split(",").map((s) => s.trim())),
+});
+```
+
+By the time your submit handler runs, email is lowercased and tags is an array. No manual normalization downstream.
+
+## What I would not do
+
+- **Don't validate in `useEffect`.** That's what React Hook Form is for.
+- **Don't store form state in `useState`.** Same reason — RHF handles it better.
+- **Don't write a separate TypeScript type *and* a Zod schema.** That's the bug this whole pattern eliminates.
+- **Don't `as any` your way around resolver type issues.** They mean your schema doesn't match what your form expects. Fix the schema.
+
+## When this is overkill
+
+Single-field forms (search bars, email subscribe). One-time admin forms with no validation requirements. You can use vanilla `<form>` and `new FormData(e.target)` for those.
+
+For anything user-facing with more than 2-3 fields, the Zod+RHF combo pays for its setup time within the first bug it prevents.
+
+## What it doesn't fix
+
+- File uploads (you'll still need separate handling)
+- Multi-step wizards (works but you'll write extra orchestration)
+- Server-driven validation (e.g., "is this email already registered" — needs an async resolver)
+
+But for the 80% case of "I have a form, the fields need to be validated, the data needs to be typed end-to-end," this is the lowest-overhead pattern I've used.

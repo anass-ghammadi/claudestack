@@ -1,5 +1,9 @@
 ---
-import { siteConfig } from '../lib/site-config';
+// SPEC: BRIEF_CLAUDESTACK_PRODUCT.md#1.1 — reads metrics from siteConfig
+import { siteConfig } from '../config/site';
+
+const essaysCount = siteConfig.stats.items.find((s) => s.label === 'essays')?.num;
+const subsCount = siteConfig.newsletter.subscriberCount;
 ---
 
 <div class="topbar">
@@ -10,11 +14,10 @@ import { siteConfig } from '../lib/site-config';
         ONLINE
       </span>
       <span class="hide-mobile">{siteConfig.version}</span>
-      <span class="hide-mobile">UPTIME {siteConfig.stats.uptime}</span>
     </div>
     <div class="topbar-right">
-      <span class="hide-mobile">{siteConfig.stats.essays} ESSAYS</span>
-      <span>{siteConfig.stats.subs} SUBS</span>
+      {essaysCount && <span class="hide-mobile">{essaysCount} ESSAYS</span>}
+      {subsCount && <span>{subsCount} SUBS</span>}
     </div>
   </div>
 </div>

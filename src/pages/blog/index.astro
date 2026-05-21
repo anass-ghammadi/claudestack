@@ -1,0 +1,56 @@
+---
+// SPEC: BRIEF_CLAUDESTACK_PRODUCT.md#1.3.d — /blog lists the real content collection
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleList from '../../components/ArticleList.astro';
+import SearchBox from '../../components/SearchBox.astro';
+import { siteConfig } from '../../config/site';
+
+const articles = (await getCollection('blog', (e) => !e.data.draft)).sort(
+  (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime(),
+);
+---
+
+<BaseLayout title="Blog" description={`Every essay, pattern, and guide from ${siteConfig.name}.`}>
+  <section class="articles-section">
+    <div class="container">
+      <div class="section-head">
+        <div class="section-head-left">
+          <div class="section-head-meta">FULL_INDEX · {articles.length} REPORTS</div>
+          <h2>The <span class="accent">blog</span></h2>
+        </div>
+        <div class="section-head-filters">
+          <a class="filter-pill active" href="/blog">all</a>
+          <a class="filter-pill" href="/categories/essays">essays</a>
+          <a class="filter-pill" href="/categories/patterns">patterns</a>
+          <a class="filter-pill" href="/categories/guides">guides</a>
+        </div>
+      </div>
+
+      {siteConfig.features.search && <SearchBox />}
+
+      {articles.length > 0 ? (
+        <ArticleList articles={articles} />
+      ) : (
+        <div class="empty-state">
+          <p>
+            <span class="prompt">$</span> ls blog/ → <span class="empty-msg">first articles coming soon</span>
+          </p>
+        </div>
+      )}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .empty-state {
+    padding: 40px;
+    border: 1px solid var(--line);
+    background: var(--bg-1);
+    font-family: var(--mono);
+    color: var(--text-dim);
+    text-align: center;
+  }
+  .prompt { color: var(--green); }
+  .empty-msg { color: var(--text-faint); }
+</style>

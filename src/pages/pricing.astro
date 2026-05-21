@@ -1,0 +1,147 @@
+---
+// SPEC: BRIEF_CLAUDESTACK_PRODUCT.md#1.3.d — placeholder pricing page (referenced from nav)
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteConfig } from '../config/site';
+
+const product = siteConfig.product;
+---
+
+<BaseLayout title="Pricing" description="Free version on GitHub, Pro version with 3 themes and premium components.">
+  <section class="page-section">
+    <div class="container">
+      <div class="page-inner">
+        <div class="page-meta">pricing / two ways to get the template</div>
+        <h1 class="page-title">Pick your <span class="accent">tier</span>.</h1>
+
+        <div class="pricing-grid">
+          <div class="pricing-card">
+            <div class="pricing-card-meta">FREE · MIT</div>
+            <h2>Open source</h2>
+            <div class="pricing-card-price">$0</div>
+            <ul class="pricing-card-list">
+              <li>1 theme (terminal)</li>
+              <li>5 demo articles</li>
+              <li>Astro 6 + Tailwind 4 stack</li>
+              <li>RSS, sitemap, OG images</li>
+              <li>Community support (GitHub issues)</li>
+            </ul>
+            <a class="btn-secondary" href={siteConfig.social.github}>View on GitHub</a>
+          </div>
+
+          <div class="pricing-card pricing-card-pro">
+            <div class="pricing-card-meta">PRO · LIFETIME</div>
+            <h2>Full template</h2>
+            <div class="pricing-card-price">
+              {product?.price ?? '$49'}
+              {product?.priceOld && <span class="pricing-card-price-old">{product.priceOld}</span>}
+            </div>
+            <ul class="pricing-card-list">
+              <li>3 themes (terminal, amber, cyan)</li>
+              <li>Live theme switcher</li>
+              <li>30 SEO programmatic landing pages</li>
+              <li>Full documentation + setup video</li>
+              <li>30-day email support</li>
+              <li>Lifetime updates</li>
+            </ul>
+            <a class="btn-primary" href={product?.ctaHref ?? '#'}>
+              {product?.ctaLabel ?? 'Get the template'}
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+    margin-top: 32px;
+  }
+
+  @media (min-width: 768px) {
+    .pricing-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .pricing-card {
+    border: 1px solid var(--line-bright);
+    background: var(--bg-1);
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .pricing-card-pro {
+    border-color: var(--green);
+    box-shadow: 0 0 32px var(--green-glow);
+  }
+
+  .pricing-card-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .pricing-card h2 {
+    font-family: var(--sans);
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+
+  .pricing-card-price {
+    font-family: var(--sans);
+    font-size: 40px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--green);
+    line-height: 1;
+  }
+
+  .pricing-card-price-old {
+    font-family: var(--mono);
+    font-size: 15px;
+    color: var(--text-faint);
+    text-decoration: line-through;
+    margin-left: 10px;
+    vertical-align: top;
+  }
+
+  .pricing-card-list {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-soft);
+  }
+
+  .pricing-card-list li {
+    padding-left: 18px;
+    position: relative;
+  }
+
+  .pricing-card-list li::before {
+    content: '[+]';
+    position: absolute;
+    left: 0;
+    color: var(--green);
+    font-weight: 600;
+  }
+
+  .pricing-card .btn-primary,
+  .pricing-card .btn-secondary {
+    margin-top: 8px;
+    align-self: flex-start;
+  }
+</style>

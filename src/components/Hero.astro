@@ -1,5 +1,9 @@
 ---
+// SPEC: BRIEF_CLAUDESTACK_PRODUCT.md#1.1 — hero copy from siteConfig.hero
 import Terminal from './Terminal.astro';
+import { siteConfig } from '../config/site';
+
+const h = siteConfig.hero;
 ---
 
 <section class="hero">
@@ -7,25 +11,22 @@ import Terminal from './Terminal.astro';
     <div>
       <div class="hero-tag">
         <span class="hero-tag-dot"></span>
-        NEW · MULTI-AGENT ORCHESTRATION
+        {h.tag}
       </div>
       <h1>
-        <span class="small">// production notes</span>
-        Ship <span class="accent">serious</span><br />
-        software with<br />
-        <span class="hero-bracket">&lt;</span>claude code<span class="hero-bracket">/&gt;</span>
+        <span class="small">{h.titleSmall}</span>
+        {h.titleLine1} <span class="accent">{h.titleAccent}</span><br />
+        {h.titleLine2}<br />
+        <span class="hero-bracket">&lt;</span>{h.titleTech}<span class="hero-bracket">/&gt;</span>
       </h1>
-      <p class="hero-subtitle">
-        Field reports from shipping <span class="highlight">40,000+ lines</span> of production
-        Python with AI coding agents. No theory. No fluff. Just patterns that hold up under load.
-      </p>
+      <p class="hero-subtitle" set:html={h.subtitle}></p>
       <div class="hero-actions">
-        <a href="/articles" class="btn-primary">read_latest</a>
-        <a href="/articles" class="btn-secondary">$ ls archive/</a>
+        <a href={h.ctaPrimary.href} class="btn-primary">{h.ctaPrimary.label}</a>
+        <a href={h.ctaSecondary.href} class="btn-secondary">{h.ctaSecondary.label}</a>
       </div>
     </div>
 
-    <Terminal variant="hero" title="~ /orchestrator" status="live">
+    <Terminal variant="hero" title={h.terminalTitle} status={h.terminalStatus}>
       <div class="terminal-line"><span class="terminal-prompt">$</span> claude --session spec</div>
       <div class="terminal-line terminal-output">→ spec.session.active</div>
       <div class="terminal-line"><span class="terminal-prompt">$</span> claude --session dev</div>

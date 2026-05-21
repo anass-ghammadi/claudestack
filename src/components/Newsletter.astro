@@ -1,57 +1,74 @@
 ---
-import { siteConfig } from '../lib/site-config';
+// SPEC: BRIEF_CLAUDESTACK_PRODUCT.md#1.1 — provider-agnostic newsletter
+import { siteConfig } from '../config/site';
 
-const username = siteConfig.buttondownUsername;
-const enabled = username.length > 0;
-const action = enabled ? `https://buttondown.com/api/emails/embed-subscribe/${username}` : '#';
+const { enabled, provider, formId, headline, subtext, subscriberCount } = siteConfig.newsletter;
+
+let action = '#';
+let popupHref = '#';
+let isWired = false;
+
+if (enabled && formId) {
+  if (provider === 'buttondown') {
+    action = `https://buttondown.com/api/emails/embed-subscribe/${formId}`;
+    popupHref = `https://buttondown.com/${formId}`;
+    isWired = true;
+  } else if (provider === 'convertkit') {
+    action = `https://app.convertkit.com/forms/${formId}/subscriptions`;
+    isWired = true;
+  } else if (provider === 'emailoctopus') {
+    action = `https://emailoctopus.com/lists/${formId}/members/embedded/1.3/add`;
+    isWired = true;
+  }
+}
 ---
 
-<section class="newsletter" id="newsletter">
-  <div class="container">
-    <div class="newsletter-block">
-      <div>
-        <div class="newsletter-meta">SUBSCRIBE / WEEKLY DIGEST</div>
-        <h2>One letter,<br />every <span class="accent">Sunday</span>.</h2>
-        <p>
-          The week's most useful patterns and field notes from building with Claude Code. No fluff. Just signal.
-        </p>
+{enabled && (
+  <section class="newsletter" id="newsletter">
+    <div class="container">
+      <div class="newsletter-block">
+        <div>
+          <div class="newsletter-meta">SUBSCRIBE / WEEKLY DIGEST</div>
+          <h2>{headline}</h2>
+          <p>{subtext}</p>
+        </div>
+        <form
+          class="newsletter-form"
+          action={action}
+          method="post"
+          target="popupwindow"
+          onsubmit={isWired && provider === 'buttondown' ? `window.open('${popupHref}', 'popupwindow')` : undefined}
+          aria-label="Newsletter signup"
+        >
+          <div class="newsletter-input-row">
+            <label class="sr-only" for="newsletter-email">Email</label>
+            <input
+              id="newsletter-email"
+              type="email"
+              name="email"
+              placeholder={isWired ? 'you@example.com' : 'newsletter coming soon'}
+              required={isWired}
+              disabled={!isWired}
+              autocomplete="email"
+            />
+            {provider === 'buttondown' && <input type="hidden" name="embed" value="1" />}
+            <button type="submit" disabled={!isWired}>SUBSCRIBE</button>
+          </div>
+          <div class="newsletter-sub-meta">
+            {isWired ? (
+              <>
+                {subscriberCount && <span>{subscriberCount} subscribed</span>}
+                <span>1-click unsubscribe</span>
+              </>
+            ) : (
+              <span>configure newsletter in src/config/site.ts to enable</span>
+            )}
+          </div>
+        </form>
       </div>
-      <form
-        class="newsletter-form"
-        action={action}
-        method="post"
-        target="popupwindow"
-        onsubmit={enabled ? `window.open('https://buttondown.com/${username}', 'popupwindow')` : 'return false'}
-        aria-label="Newsletter signup"
-      >
-        <div class="newsletter-input-row">
-          <label class="sr-only" for="newsletter-email">Email</label>
-          <input
-            id="newsletter-email"
-            type="email"
-            name="email"
-            placeholder={enabled ? 'you@example.com' : 'newsletter coming soon'}
-            required={enabled}
-            disabled={!enabled}
-            autocomplete="email"
-          />
-          <input type="hidden" name="embed" value="1" />
-          <button type="submit" disabled={!enabled}>SUBSCRIBE</button>
-        </div>
-        <div class="newsletter-sub-meta">
-          {enabled ? (
-            <>
-              <span>{siteConfig.stats.subs} subscribed</span>
-              <span>1-click unsubscribe</span>
-            </>
-          ) : (
-            <span>add buttondown username in src/lib/site-config.ts to enable</span>
-          )}
-        </div>
-      </form>
     </div>
-  </div>
-</section>
+  </section>
+)}
 
 <style>
   .sr-only {

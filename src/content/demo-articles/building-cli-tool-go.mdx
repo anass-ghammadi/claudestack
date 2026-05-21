@@ -1,0 +1,162 @@
+---
+title: "Building a CLI Tool in Go: A Practical Guide"
+description: "Build a real CLI in Go with flag parsing, subcommands, structured output, and proper exit codes. Working code throughout."
+pubDate: 2025-12-04
+author: "Jane Developer"
+tags: ["go", "cli", "tooling"]
+isDemo: true
+---
+
+Go is one of the best languages for CLI tools: fast startup, single static binary, excellent stdlib support. This guide walks through building a small but realistic CLI from scratch.
+
+## Project setup
+
+```bash
+mkdir wcount && cd wcount
+go mod init github.com/yourname/wcount
+```
+
+We're building `wcount` — a word-count utility with subcommands and JSON output.
+
+## The minimum viable CLI
+
+```go
+package main
+
+import (
+    "fmt"
+    "os"
+)
+
+func main() {
+    if len(os.Args) < 2 {
+        fmt.Fprintln(os.Stderr, "usage: wcount <file>")
+        os.Exit(1)
+    }
+    fmt.Println("would count:", os.Args[1])
+}
+```
+
+`go run . README.md` works. But for anything beyond the trivial, reach for the `flag` package.
+
+## Adding flags
+
+```go
+package main
+
+import (
+    "flag"
+    "fmt"
+    "os"
+)
+
+func main() {
+    var (
+        path = flag.String("file", "", "path to count")
+        json = flag.Bool("json", false, "emit JSON")
+    )
+    flag.Parse()
+
+    if *path == "" {
+        fmt.Fprintln(os.Stderr, "error: --file is required")
+        os.Exit(2)
+    }
+    // ... do the work
+}
+```
+
+Note the exit codes: `1` for general errors, `2` for usage errors. POSIX convention; tools that pipe to you (and CI systems) will check these.
+
+## Subcommands
+
+For anything with multiple actions (`count`, `lines`, `chars`), use `flag.NewFlagSet`:
+
+```go
+func main() {
+    if len(os.Args) < 2 {
+        usage()
+        os.Exit(2)
+    }
+    switch os.Args[1] {
+    case "count":
+        countCmd(os.Args[2:])
+    case "lines":
+        linesCmd(os.Args[2:])
+    default:
+        fmt.Fprintf(os.Stderr, "unknown subcommand: %s\n", os.Args[1])
+        os.Exit(2)
+    }
+}
+
+func countCmd(args []string) {
+    fs := flag.NewFlagSet("count", flag.ExitOnError)
+    path := fs.String("file", "", "file to count")
+    fs.Parse(args)
+    // ...
+}
+```
+
+For real production CLIs, `cobra` (used by kubectl, hugo, gh) or `urfave/cli` are worth the dependency. For anything under ~300 lines of CLI surface, stdlib is enough.
+
+## Reading stdin or a file
+
+Make the same code path work for both:
+
+```go
+func openInput(path string) (io.ReadCloser, error) {
+    if path == "" || path == "-" {
+        return os.Stdin, nil
+    }
+    return os.Open(path)
+}
+```
+
+Now `cat README.md | wcount count -` works.
+
+## Structured output
+
+For machine-readable output, opt in via flag:
+
+```go
+type result struct {
+    File  string `json:"file"`
+    Words int    `json:"words"`
+}
+
+func emit(r result, asJSON bool) {
+    if asJSON {
+        enc := json.NewEncoder(os.Stdout)
+        enc.Encode(r)
+        return
+    }
+    fmt.Printf("%s: %d words\n", r.File, r.Words)
+}
+```
+
+Default is human-readable. `--json` flag flips to machine-readable. Pipe-friendly tools support both.
+
+## Distributing the binary
+
+```bash
+GOOS=linux GOARCH=amd64 go build -o dist/wcount-linux-amd64
+GOOS=darwin GOARCH=arm64 go build -o dist/wcount-darwin-arm64
+GOOS=windows GOARCH=amd64 go build -o dist/wcount-windows-amd64.exe
+```
+
+Three lines, three binaries, no runtime required. This is the killer feature.
+
+For releases, `goreleaser` automates this plus GitHub Releases publishing, Homebrew formula generation, and SHA checksums. Worth the YAML.
+
+## What I'd skip on day one
+
+- Custom config files
+- Plugin systems
+- Auto-update mechanisms
+
+These are real features but add complexity that most CLIs never need. Ship the simple version, see who uses it, then add the framework.
+
+## Wrapping up
+
+The whole CLI fits in ~200 lines of Go. It has subcommands, flag parsing, JSON output, stdin/file input, and proper exit codes. It builds for three platforms with three commands. That's a complete, distributable tool.
+
+Go's combination of fast startup, easy cross-compilation, and a stdlib that covers 80% of CLI needs is hard to beat. For internal tooling, ops scripts, and small public utilities, it's my default.

@@ -1,5 +1,6 @@
 ---
-import { siteConfig } from '../lib/site-config';
+// SPEC: BRIEF_CLAUDESTACK_PRODUCT.md#1.1 — reads brand name from siteConfig
+import { siteConfig } from '../config/site';
 
 interface Props {
   variant?: 'nav' | 'footer';
@@ -8,16 +9,17 @@ interface Props {
 
 const { variant = 'nav', href = '/' } = Astro.props;
 const className = variant === 'footer' ? 'footer-logo' : 'logo';
+const label = siteConfig.name.toLowerCase();
 ---
 
 {
   variant === 'footer' ? (
     <div class={className}>
-      <span class="logo-bracket">[</span>{siteConfig.name}<span class="logo-bracket">]</span>
+      <span class="logo-bracket">[</span>{label}<span class="logo-bracket">]</span>
     </div>
   ) : (
     <a href={href} class={className} aria-label={siteConfig.name}>
-      <span class="logo-bracket">[</span>{siteConfig.name}<span class="logo-bracket">]</span>
+      <span class="logo-bracket">[</span>{label}<span class="logo-bracket">]</span>
     </a>
   )
 }

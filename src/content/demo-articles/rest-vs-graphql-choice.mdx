@@ -1,0 +1,103 @@
+---
+title: "REST vs GraphQL: When to Choose Which"
+description: "An honest comparison from someone who's shipped both in production. The actual decision criteria — not the marketing pitches."
+pubDate: 2025-11-21
+author: "Jane Developer"
+tags: ["api", "graphql", "rest", "architecture"]
+isDemo: true
+---
+
+The REST-vs-GraphQL debate has been going on for nearly a decade. The honest answer is that both are valid choices for different problems, and the team that picks the right one for *their* problem ships faster.
+
+Here's how I actually decide.
+
+## When REST wins
+
+REST is the right choice when:
+
+- **Your data model maps cleanly to resources.** Users, orders, posts. Things with IDs and predictable CRUD operations.
+- **You have many clients you don't control.** Public APIs benefit from REST's discoverability, predictable URLs, and HTTP caching.
+- **HTTP caching matters.** CDNs, browser caches, intermediate proxies — they all understand `GET /users/123` and can cache it. They cannot easily cache `POST /graphql`.
+- **You need rate limiting per endpoint.** REST routes are natural rate-limit units. GraphQL queries are arbitrary; rate limiting them needs query analysis or complexity scoring.
+
+A small REST API with 8 endpoints and a thin client layer is faster to build and easier to debug than the GraphQL equivalent. Don't overengineer.
+
+## When GraphQL wins
+
+GraphQL is the right choice when:
+
+- **You have many clients with varied data needs.** A mobile app wants 5 fields, the dashboard wants 30, the admin tool wants everything. GraphQL lets each ask for what it needs without server changes.
+- **Your data is a deeply-connected graph.** When fetching a user requires fetching their orders, the orders' items, the items' inventory — REST forces you into N+1 round trips or special composite endpoints. GraphQL handles this in one request.
+- **Schema evolution is constant.** GraphQL's deprecation model (mark fields `@deprecated`, monitor usage, remove when zero) is cleaner than REST versioning.
+
+If you're building a single client against a single backend, GraphQL's tooling overhead probably outweighs its benefits. If you're a Shopify or a GitHub serving thousands of integrators, GraphQL pays for itself.
+
+## A concrete comparison
+
+Same resource — fetching a user with their last 5 orders.
+
+**REST**:
+
+```http
+GET /users/123
+{ "id": 123, "name": "Alice", "email": "..." }
+
+GET /users/123/orders?limit=5
+[ { "id": 9001, "total": 4500 }, ... ]
+```
+
+Two round trips, or one composite endpoint you build specifically for this view (`GET /users/123?include=recent_orders`). REST APIs accumulate composite endpoints; this is the cost.
+
+**GraphQL**:
+
+```graphql
+query {
+  user(id: 123) {
+    id
+    name
+    email
+    orders(last: 5) {
+      id
+      total
+    }
+  }
+}
+```
+
+One round trip, one query, only the fields you asked for. The cost: writing and maintaining a resolver layer, dealing with N+1 problems via DataLoader, and ensuring query complexity is bounded so a client can't accidentally DoS you with a 7-level nested query.
+
+## What you save / what you pay
+
+| Concern | REST | GraphQL |
+|---|---|---|
+| Initial setup | Hours | Days |
+| Adding a new field | Add to response, version if breaking | Add to schema, mark old `@deprecated` |
+| Client over-fetching | Real problem | Solved by design |
+| Server complexity | Low | Medium-high (resolvers + DataLoader) |
+| Caching | HTTP cache works | Need application-layer cache (Apollo, urql) |
+| Tooling for clients | Curl, Postman, browser | GraphQL Playground, codegen for types |
+| Monitoring | Per-endpoint metrics natural | Per-query complexity scoring needed |
+
+## What I would actually pick
+
+For most teams I've worked with:
+
+- **Internal services, microservice-to-microservice**: REST + JSON over HTTP. Boring works.
+- **Customer-facing public API**: REST. Easier for integrators to grok.
+- **Mobile app with a single backend**: GraphQL if the data model is graph-shaped, REST if it's resource-shaped.
+- **BFF (backend-for-frontend) for a single rich web app**: GraphQL is great. The flexibility pays off.
+- **You're not sure**: REST. You can always add a GraphQL gateway later. The reverse is much harder.
+
+## The wrong question
+
+"Which is better" is the wrong question. They're tools for different shapes of problem. Teams that get stuck in the debate often haven't actually defined what their data access patterns are. Once you write down "the dashboard fetches X with Y rate, the mobile app fetches Z with W rate, and the public API needs to be stable for 5 years," the answer usually becomes obvious.
+
+If after answering that you still can't tell, pick REST. The day you legitimately need GraphQL, you'll know, and migrating a REST API to a GraphQL gateway is a known pattern.
+
+## What I won't argue about
+
+- "GraphQL is harder to cache." True. Worth the trade if you need it.
+- "REST is just an HTTP API, not even a standard." True. Doesn't matter in practice.
+- "tRPC / gRPC / X is better than both." Sometimes yes, sometimes no. Not this article.
+
+Pick based on your actual problem. Not based on what trended on Hacker News last quarter.

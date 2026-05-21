@@ -3,7 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 import { formatDate } from '../lib/format-date';
 
 interface Props {
-  articles: CollectionEntry<'articles'>[];
+  articles: CollectionEntry<'blog'>[];
 }
 
 const { articles } = Astro.props;
@@ -14,7 +14,7 @@ const { articles } = Astro.props;
     <div class="related-head">related field reports</div>
     <div class="related-grid">
       {articles.map((a) => (
-        <a class="related-card" href={`/articles/${a.id}`}>
+        <a class="related-card" href={`/blog/${a.id}`}>
           <div class="related-card-meta">
             {a.data.category} · {formatDate(a.data.pubDate)}
           </div>

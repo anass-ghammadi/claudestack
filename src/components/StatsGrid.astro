@@ -1,4 +1,7 @@
 ---
+// SPEC: BRIEF_CLAUDESTACK_PRODUCT.md#1.1 — stats from siteConfig.stats with optional override
+import { siteConfig } from '../config/site';
+
 interface Stat {
   label: string;
   num: string;
@@ -11,27 +14,24 @@ interface Props {
 }
 
 const {
-  header = 'SYSTEM_METRICS / LAST_30D',
-  stats = [
-    { label: 'essays', num: '62', delta: '+3 this month' },
-    { label: 'subs', num: '2,847', delta: '+12.4% MoM' },
-    { label: 'patterns', num: '14', delta: 'production' },
-    { label: 'loc shipped', num: '40k+', delta: 'claude-assisted' },
-  ],
+  header = siteConfig.stats.label,
+  stats = [...siteConfig.stats.items],
 } = Astro.props;
 ---
 
-<section class="stats">
-  <div class="container">
-    <div class="stats-header">{header}</div>
-    <div class="stats-grid">
-      {stats.map((s) => (
-        <div class="stat">
-          <div class="stat-label">{s.label}</div>
-          <div class="stat-num">{s.num}</div>
-          <div class="stat-delta">{s.delta}</div>
-        </div>
-      ))}
+{stats.length > 0 && (
+  <section class="stats">
+    <div class="container">
+      <div class="stats-header">{header}</div>
+      <div class="stats-grid">
+        {stats.map((s) => (
+          <div class="stat">
+            <div class="stat-label">{s.label}</div>
+            <div class="stat-num">{s.num}</div>
+            <div class="stat-delta">{s.delta}</div>
+          </div>
+        ))}
+      </div>
     </div>
-  </div>
-</section>
+  </section>
+)}

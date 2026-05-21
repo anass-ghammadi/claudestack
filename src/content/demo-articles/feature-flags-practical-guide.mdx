@@ -1,0 +1,141 @@
+---
+title: "A Practical Guide to Feature Flags"
+description: "When flags help, when they hurt, and the four flag types every team should know. Plus the cleanup discipline that prevents the dreaded flag graveyard."
+pubDate: 2025-08-26
+author: "Jane Developer"
+tags: ["devops", "feature-flags", "deployment"]
+isDemo: true
+---
+
+Feature flags are one of those engineering practices everyone agrees are good and almost everyone implements badly. After running flag systems on three different teams of varying sizes, I have opinions.
+
+## What flags actually buy you
+
+Three real wins:
+
+1. **Decoupling deploy from release.** Ship code dark, turn it on later. Reduces deployment risk to near-zero.
+2. **Targeted rollouts.** Turn the feature on for 5% of users, watch metrics, ramp up if healthy. Roll back instantly if not.
+3. **Kill switches.** When something breaks in production, flip a flag instead of deploying a fix at 3am.
+
+These are real. They're also why every flag system eventually accumulates 800 flags nobody remembers, half of which are dead code paths the team is afraid to delete.
+
+The problem is not having flags. The problem is not having flag *discipline*.
+
+## The four flag types
+
+Treat these differently. They have different lifecycles, different ownership, different cleanup criteria.
+
+### 1. Release flags
+
+```ts
+if (flags.isEnabled("new_checkout_flow", user)) {
+  return <NewCheckout />;
+}
+return <OldCheckout />;
+```
+
+**Purpose**: turn a new feature on for some subset of users.
+**Lifetime**: 1-4 weeks. Remove the flag after the feature is fully launched.
+**Owner**: the engineer building the feature.
+**Cleanup trigger**: 100% rollout, no rollback for 1 week → delete the flag and the old code path.
+
+This is what people usually mean by "feature flag." Most flag bloat comes from forgetting to clean these up.
+
+### 2. Experiment flags
+
+```ts
+const variant = flags.getVariant("button_color_test", user);
+return <Button color={variant} />;
+```
+
+**Purpose**: A/B test variants.
+**Lifetime**: matches the experiment — usually 2-6 weeks.
+**Owner**: PM or analyst running the test.
+**Cleanup trigger**: experiment concluded → keep winning variant, delete others, delete flag.
+
+These have a natural end date (the experiment). Enforce it.
+
+### 3. Operational flags (kill switches)
+
+```ts
+if (flags.isEnabled("recommendations_v2_killswitch")) {
+  return <OldRecommendations />; // fallback
+}
+return <NewRecommendations />;
+```
+
+**Purpose**: instant rollback without deploying.
+**Lifetime**: permanent.
+**Owner**: the team owning the system.
+**Cleanup trigger**: never, unless the underlying system is deprecated.
+
+These are infrastructure. Don't conflate them with release flags. Document them. Test them quarterly.
+
+### 4. Permission flags
+
+```ts
+if (flags.isEnabled("internal_admin_tools", user) && user.isStaff) {
+  return <AdminPanel />;
+}
+```
+
+**Purpose**: gate features for specific user segments (paid plan, internal staff, beta program).
+**Lifetime**: permanent or until the feature is opened to all.
+**Owner**: product team.
+
+These often masquerade as release flags. They're not. They're entitlement.
+
+## The lifecycle that prevents the graveyard
+
+```
+Create flag → Code uses flag → Roll out → Verify → DELETE
+                                                    ↑
+                                       The step everyone skips
+```
+
+Three rules that have worked for me:
+
+**Rule 1: Every release flag has an expiry date.**
+
+```ts
+flags.register("new_checkout_flow", {
+  type: "release",
+  expiresOn: "2026-06-15",
+  owner: "checkout-team",
+});
+```
+
+The flag system warns when a flag is past its expiry date. Engineers see the warning when they grep for the flag name. Old flags don't silently rot.
+
+**Rule 2: Flag-removal PRs are first-class work.**
+
+Reserve 1-2 hours per sprint for "tech health" — cleaning up flags that are at 100% rollout. Make this visible. Reward it.
+
+**Rule 3: Code review flags hard.**
+
+Every flag introduced in a PR should answer: "When and how is this flag removed?" If the author can't answer, the flag doesn't get merged. Sounds harsh; saves you 50 zombie flags a year.
+
+## The right architecture
+
+For most teams: don't roll your own. The math:
+
+- **Buy** (LaunchDarkly, Statsig, etc.): $X/month, get the dashboard, targeting, analytics, audit log, kill switch SLA.
+- **Build**: 2-3 engineering months for a half-working version, plus ongoing maintenance forever.
+
+Pay the money unless your scale is genuinely unusual or you have a privacy reason to keep all flag evaluation in-house.
+
+If you do build it: the flag service must respond in `<5ms` p99. If it doesn't, every feature flag becomes a latency tax on every request. Use local SDK caches; refresh in background; degrade gracefully if the service is down.
+
+## What I would not flag
+
+- **Critical business logic.** "Compute tax correctly" should not be a flag. If you need a flag to test correctness, you don't have correctness; you have a coin flip.
+- **Bug fixes.** Just ship them. A flag on a fix means the bug is the default for some users, which is worse than the bug existed at all.
+- **Performance optimizations you can't roll back.** A flag implies reversibility. If the change is one-way (DB schema, file format), flag the rollout, not the feature.
+
+## The metric that matters
+
+Track **active flag count over time**. Plot it monthly. The line should bend back down when the team cleans up. If it's monotonically rising, you have a flag problem, and it will eventually cause an outage that everyone blames on something else.
+
+In healthy systems I've seen: 30-60 active flags total, with ~10 release flags churning through their lifecycle at any time. In unhealthy systems: 500+ flags, of which 300 are at 100% rollout and no one knows if it's safe to delete them.
+
+Be the healthy one.

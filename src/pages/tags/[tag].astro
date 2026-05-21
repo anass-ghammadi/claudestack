@@ -1,11 +1,13 @@
 ---
+// SPEC: BRIEF_CLAUDESTACK_PRODUCT.md#1.1 — description references siteConfig.name
 import { getCollection } from 'astro:content';
 import type { GetStaticPaths } from 'astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleList from '../../components/ArticleList.astro';
+import { siteConfig } from '../../config/site';
 
 export const getStaticPaths = (async () => {
-  const all = await getCollection('articles', (e) => !e.data.draft);
+  const all = await getCollection('blog', (e) => !e.data.draft);
   const uniqueTags = [...new Set(all.flatMap((a) => a.data.tags))];
 
   return uniqueTags.map((tag) => {
@@ -24,7 +26,7 @@ const { tag, articles } = Astro.props;
 
 <BaseLayout
   title={`#${tag}`}
-  description={`Articles tagged #${tag} on ClaudeStack.`}
+  description={`Articles tagged #${tag} on ${siteConfig.name}.`}
 >
   <section class="articles-section">
     <div class="container">
@@ -34,7 +36,7 @@ const { tag, articles } = Astro.props;
           <h2>#<span class="accent">{tag}</span></h2>
         </div>
         <div class="section-head-filters">
-          <a class="filter-pill" href="/articles">← all</a>
+          <a class="filter-pill" href="/blog">← all</a>
         </div>
       </div>
 

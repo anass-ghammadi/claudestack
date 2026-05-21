@@ -1,16 +1,23 @@
 ---
+// SPEC: BRIEF_CLAUDESTACK_PRODUCT.md#1.1 + #1.4 — nav + theme switcher
 import Logo from './Logo.astro';
-import { siteConfig } from '../lib/site-config';
+import ThemeSwitcher from './ThemeSwitcher.astro';
+import { siteConfig } from '../config/site';
 ---
 
 <nav>
   <div class="container nav-inner">
     <Logo />
     <ul class="nav-links-desktop">
-      {siteConfig.navLinks.map((link) => (
+      {siteConfig.nav.map((link) => (
         <li><a href={link.href}>{link.label}</a></li>
       ))}
-      <li><a href="#newsletter" class="nav-cta">SUBSCRIBE</a></li>
+      {siteConfig.newsletter.enabled && (
+        <li><a href="#newsletter" class="nav-cta">SUBSCRIBE</a></li>
+      )}
+      {siteConfig.features.themeSwitcher && (
+        <li class="nav-theme-switcher"><ThemeSwitcher /></li>
+      )}
     </ul>
     <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navMobile">
       <span></span>
@@ -19,3 +26,9 @@ import { siteConfig } from '../lib/site-config';
     </button>
   </div>
 </nav>
+
+<style>
+  .nav-theme-switcher {
+    margin-left: 8px;
+  }
+</style>

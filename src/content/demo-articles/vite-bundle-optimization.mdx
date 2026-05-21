@@ -1,0 +1,169 @@
+---
+title: "Optimizing Bundle Size with Vite"
+description: "Concrete steps to cut your Vite bundle in half. Tree-shaking gotchas, code splitting, modern targets, and the analyzer that shows you where the bloat lives."
+pubDate: 2025-08-03
+author: "Jane Developer"
+tags: ["vite", "javascript", "performance"]
+isDemo: true
+---
+
+Vite ships with sensible defaults that handle most bundle optimization automatically. But "most" leaves real wins on the table. Here are the moves that consistently cut bundle size by 30-60% on real projects I've shipped.
+
+## Step 0: see what you're shipping
+
+Don't optimize blind. Install the analyzer:
+
+```bash
+npm install -D rollup-plugin-visualizer
+```
+
+```ts
+// vite.config.ts
+import { visualizer } from "rollup-plugin-visualizer";
+
+export default {
+  plugins: [
+    visualizer({ filename: "dist/stats.html", gzipSize: true, brotliSize: true }),
+  ],
+};
+```
+
+Run `npm run build && open dist/stats.html`. You'll see a treemap of every byte. **Read this before doing anything else.** Most optimization advice is wrong for *your* bundle.
+
+Common surprises:
+
+- One library you forgot about taking up 200KB
+- Your locale data (date-fns, moment) shipping all 200 locales when you use 2
+- Source maps accidentally inlined
+- Icon library (lucide-react, heroicons) NOT tree-shaking because of a barrel file
+
+Fix the surprises first. They usually account for 40-60% of bloat.
+
+## Step 1: modern build target
+
+Vite's default `target: "modules"` ships ES2020. If your audience is modern browsers (no IE11, no ancient Android), you can go higher:
+
+```ts
+// vite.config.ts
+export default {
+  build: {
+    target: "es2022",
+  },
+};
+```
+
+ES2022 removes a lot of polyfills and downleveling. A typical React app shrinks 8-15% on this change alone.
+
+Check your audience's actual browser distribution in your analytics before doing this. If 99% of users are on Chrome >100, Safari >15, you're fine.
+
+## Step 2: real tree-shaking
+
+Tree-shaking only works when:
+
+1. The library ships ES modules (look at `package.json`'s `"module"` or `"exports"` field)
+2. You import the *specific* thing, not the whole library
+3. The library doesn't have side effects (`"sideEffects": false` in its package.json)
+
+The classic violator: utility libraries imported wholesale.
+
+```ts
+// bad — pulls in all of lodash (~70KB)
+import _ from "lodash";
+_.debounce(fn, 100);
+
+// good — pulls in only debounce (~2KB)
+import debounce from "lodash/debounce";
+
+// best — use the modular package
+import { debounce } from "lodash-es";
+```
+
+`lodash-es` is the ES module build. With it + bundler tree-shaking, you only ship what you import.
+
+## Step 3: code-split routes
+
+If you're using React + React Router:
+
+```tsx
+import { lazy, Suspense } from "react";
+
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Settings = lazy(() => import("./pages/Settings"));
+
+// in your router:
+<Route path="/dashboard" element={
+  <Suspense fallback={<Loading />}>
+    <Dashboard />
+  </Suspense>
+} />
+```
+
+Vite generates a separate chunk per `lazy()` import. Users only load the routes they visit. First-page bundle drops dramatically.
+
+For Vue/Svelte/Solid, the equivalent dynamic-import pattern is the same idea.
+
+## Step 4: split heavy dependencies into their own chunks
+
+If you have one giant dep (a charting library, a markdown editor) used on one page, manual chunks help with caching:
+
+```ts
+// vite.config.ts
+export default {
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          charts: ["chart.js", "react-chartjs-2"],
+          editor: ["@tiptap/react", "@tiptap/starter-kit"],
+        },
+      },
+    },
+  },
+};
+```
+
+Now `charts.[hash].js` is its own file. When you ship a release that doesn't touch charts, browsers re-use the cached charts chunk. Repeat visits get faster.
+
+## Step 5: subset what you don't need
+
+A handful of common cuts:
+
+- **`date-fns`**: ESM tree-shakes well. Don't import all locales. Import `date-fns/format` instead of `date-fns`.
+- **`@tabler/icons-react` or similar**: each icon is a separate component. `import { IconHome } from "@tabler/icons-react"` should ship only IconHome. Verify with the analyzer.
+- **`moment.js`**: deprecated. Replace with `date-fns` or `dayjs`. Saves ~70KB.
+- **`@mui/material`**: notoriously big. Use auto-import babel plugin or per-component imports.
+- **Polyfills** (`core-js`, `regenerator-runtime`): often included unnecessarily. Vite handles this for you; if you have these in your bundle, something is forcing them.
+
+## Step 6: brotli compression on the server
+
+Brotli compresses JS ~15% better than gzip. Make sure your server (or CDN) is serving `.js` files with `Content-Encoding: br`.
+
+Most modern hosts (Cloudflare, Vercel, Netlify) do this automatically. If you're self-hosted with nginx:
+
+```nginx
+brotli on;
+brotli_types application/javascript text/css;
+brotli_comp_level 6;
+```
+
+## Numbers from a real project
+
+A medium React app I shipped:
+
+- Initial: 480KB gzipped (uncompressed: 1.6MB)
+- After `lodash-es` swap: 410KB
+- After lazy-routes: 180KB initial + 50-100KB per route
+- After ES2022 target: 165KB
+- After date-fns subset import: 152KB
+
+68% reduction in initial bundle. ~3 hours of work. Lighthouse perf score went 67 → 92.
+
+## What doesn't help
+
+- Micro-optimizations of your own code. Your code is rarely the bottleneck; dependencies are.
+- Aggressive minification settings. Vite's defaults are already pretty close to optimal.
+- Pre-rendering / SSR for the wrong reasons. SSR helps TTFB and SEO, not bundle size.
+
+## The one rule
+
+**Measure before. Measure after. Don't trust feelings.** The analyzer is the only honest source of truth.

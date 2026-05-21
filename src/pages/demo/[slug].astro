@@ -1,0 +1,21 @@
+---
+// SPEC: BRIEF_CLAUDESTACK_PRODUCT.md#1.3.d — individual demo article
+import { getCollection, render } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+import DemoLayout from '../../layouts/DemoLayout.astro';
+
+export const getStaticPaths = (async () => {
+  const all = await getCollection('demo-articles', (entry) => !entry.data.draft);
+  return all.map((article) => ({
+    params: { slug: article.id },
+    props: { article },
+  }));
+}) satisfies GetStaticPaths;
+
+const { article } = Astro.props;
+const { Content, headings } = await render(article);
+---
+
+<DemoLayout article={article} rawBody={article.body ?? ''} headings={headings}>
+  <Content />
+</DemoLayout>

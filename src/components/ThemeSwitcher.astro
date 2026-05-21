@@ -1,0 +1,97 @@
+---
+// SPEC: BRIEF_CLAUDESTACK_PRODUCT.md#1.4 — theme switcher with localStorage persistence
+import { siteConfig } from '../config/site';
+
+const themes = [
+  { id: 'terminal', label: 'Terminal', glyph: '⬛' },
+  { id: 'amber', label: 'Amber', glyph: '🟠' },
+  { id: 'cyan', label: 'Cyan', glyph: '🔵' },
+];
+---
+
+{siteConfig.features.themeSwitcher && (
+  <div class="theme-switcher" role="group" aria-label="Theme switcher">
+    {themes.map((t) => (
+      <button
+        type="button"
+        class="theme-btn"
+        data-theme-toggle={t.id}
+        aria-label={`${t.label} theme`}
+        title={`${t.label} theme`}
+      >{t.glyph}</button>
+    ))}
+  </div>
+)}
+
+<style>
+  .theme-switcher {
+    display: inline-flex;
+    gap: 2px;
+    background: var(--bg-2);
+    border: 1px solid var(--line-bright);
+    padding: 2px;
+  }
+
+  .theme-btn {
+    background: transparent;
+    border: 0;
+    padding: 4px 6px;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    opacity: 0.55;
+    transition: opacity 0.15s, background 0.15s;
+  }
+
+  .theme-btn:hover {
+    opacity: 1;
+    background: var(--bg-3);
+  }
+
+  .theme-btn[data-active="true"] {
+    opacity: 1;
+    background: var(--bg-3);
+  }
+</style>
+
+<script is:inline>
+  // Inline + early so the chosen theme applies before paint (no flash).
+  (function () {
+    try {
+      var saved = localStorage.getItem('cs_theme');
+      if (saved && ['terminal','amber','cyan'].indexOf(saved) >= 0) {
+        document.documentElement.setAttribute('data-theme', saved);
+      }
+    } catch (e) {}
+  })();
+</script>
+
+<script>
+  function init() {
+    const buttons = document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]');
+    if (buttons.length === 0) return;
+
+    const current = document.documentElement.getAttribute('data-theme') || 'terminal';
+    buttons.forEach((btn) => {
+      if (btn.dataset.themeToggle === current) {
+        btn.setAttribute('data-active', 'true');
+      }
+      btn.addEventListener('click', () => {
+        const theme = btn.dataset.themeToggle;
+        if (!theme) return;
+        document.documentElement.setAttribute('data-theme', theme);
+        try {
+          localStorage.setItem('cs_theme', theme);
+        } catch (e) {}
+        buttons.forEach((b) => b.removeAttribute('data-active'));
+        btn.setAttribute('data-active', 'true');
+      });
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+</script>

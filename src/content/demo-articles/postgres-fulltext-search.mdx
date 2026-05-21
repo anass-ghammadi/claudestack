@@ -1,0 +1,146 @@
+---
+title: "Postgres Full-Text Search: A Beginner's Guide"
+description: "You don't need Elasticsearch. Postgres has built-in full-text search that handles surprising amounts of traffic. Here's how to set it up properly."
+pubDate: 2025-10-02
+author: "Jane Developer"
+tags: ["postgres", "database", "search"]
+isDemo: true
+---
+
+The reflex move when you need search is to spin up Elasticsearch. For a lot of apps, that's overkill. Postgres has had full-text search since version 8.3, and it's good enough to handle millions of documents on commodity hardware.
+
+This guide gets you from zero to a working search in 15 minutes.
+
+## The two core concepts
+
+**`tsvector`** — a column type that stores parsed, normalized, weighted document tokens. Think of it as the search index for a single row.
+
+**`tsquery`** — a query type that matches against `tsvector`. Supports `&`, `|`, `!`, prefix `:*`, and proximity.
+
+You generate `tsvector` from text using `to_tsvector('english', ...)`. You match with the `@@` operator:
+
+```sql
+SELECT title
+FROM articles
+WHERE to_tsvector('english', title || ' ' || body) @@ to_tsquery('english', 'postgres');
+```
+
+Works, but slow on large tables. The index makes it fast.
+
+## Setting up a proper indexed column
+
+Add a generated column and a GIN index. This is the recommended modern approach:
+
+```sql
+ALTER TABLE articles
+  ADD COLUMN search_vector tsvector
+  GENERATED ALWAYS AS (
+    setweight(to_tsvector('english', coalesce(title, '')), 'A') ||
+    setweight(to_tsvector('english', coalesce(body, '')), 'B')
+  ) STORED;
+
+CREATE INDEX articles_search_idx ON articles USING GIN (search_vector);
+```
+
+Three things happening:
+
+1. **Generated column** — Postgres maintains `search_vector` automatically on every insert/update. No triggers needed.
+2. **`setweight`** — title matches will rank above body matches. The weights are A/B/C/D, where A is highest.
+3. **GIN index** — the right index type for `tsvector`. GIN is slower to build than B-tree but blazing fast to query.
+
+## Querying
+
+Basic search:
+
+```sql
+SELECT title, ts_rank(search_vector, query) AS rank
+FROM articles, to_tsquery('english', 'postgres & search') AS query
+WHERE search_vector @@ query
+ORDER BY rank DESC
+LIMIT 20;
+```
+
+`ts_rank` gives you a relevance score. Higher = better match. Sorting by rank descending gives you Google-style "best result first."
+
+## Prefix matching for autocomplete
+
+```sql
+WHERE search_vector @@ to_tsquery('english', 'postg:*')
+```
+
+The `:*` is a prefix operator. "postg" matches "postgres", "postgresql", etc. Perfect for type-ahead search.
+
+## Phrase search
+
+```sql
+WHERE search_vector @@ phraseto_tsquery('english', 'full text search')
+```
+
+`phraseto_tsquery` treats the input as a phrase — words must appear in order.
+
+## Handling user input safely
+
+Never `to_tsquery(user_input)` directly. It throws on syntax errors. Use `websearch_to_tsquery` (Postgres 11+):
+
+```sql
+SELECT title FROM articles
+WHERE search_vector @@ websearch_to_tsquery('english', 'postgres "full text"')
+```
+
+It accepts Google-style syntax: quoted phrases, `OR`, `-` for negation. Forgiving for user input.
+
+## Highlighting matches
+
+```sql
+SELECT ts_headline('english', body, query, 'MaxWords=30, MinWords=15')
+FROM articles, websearch_to_tsquery('english', 'postgres') AS query
+WHERE search_vector @@ query
+LIMIT 5;
+```
+
+Returns the body with `<b>...</b>` around matched terms — wire this into your search results snippet.
+
+## Multi-language
+
+```sql
+-- per-row language
+ALTER TABLE articles ADD COLUMN language regconfig DEFAULT 'english';
+
+-- update the generated column:
+search_vector tsvector
+GENERATED ALWAYS AS (
+  to_tsvector(language, coalesce(title || ' ' || body, ''))
+) STORED;
+```
+
+Now each row gets indexed in its own language. Stemming and stopwords switch per row.
+
+## When you'll outgrow this
+
+Postgres FTS holds up beautifully until you need:
+
+- **Fuzzy matching** (typo tolerance). Postgres has `pg_trgm` which helps but isn't great. Elasticsearch's fuzzy is better.
+- **Faceted search** with millions of facets. Doable in Postgres with aggregations, but Elastic is purpose-built.
+- **Tens of millions of documents with sub-100ms queries.** Postgres GIN holds up to single-digit millions in my experience. Past that, dedicated search.
+
+For ~5M documents and reasonable query patterns, Postgres handles it on a single mid-tier instance.
+
+## The performance secret
+
+`pg_stat_statements` will show you which search queries are slow. If a particular query is slow, often it's because:
+
+1. The GIN index isn't being used (`EXPLAIN ANALYZE` will tell you — look for "Bitmap Index Scan on articles_search_idx").
+2. You have `LIMIT` without `ORDER BY` — Postgres scans more than it needs to.
+3. Your query is too broad (`to_tsquery('a:*')` matches everything starting with 'a').
+
+Standard query plan investigation applies.
+
+## When to skip Postgres FTS
+
+- You need real-time updates (Postgres trigger overhead can become an issue at very high write rates)
+- Your users expect "smart" search (intent, synonyms, semantic). That's the dedicated-search domain.
+- You're already running Elastic for other reasons. Don't add a second search tier.
+
+Otherwise: this is the cheapest "good enough" full-text search you'll find. Stays in one database, stays operationally simple, no separate cluster to maintain.
+
+Default to Postgres FTS. Switch only when you have measured pain.

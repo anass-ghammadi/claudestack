@@ -1,77 +1,43 @@
 ---
+// SPEC: BRIEF_CLAUDESTACK_PRODUCT.md#1.1 — about copy from siteConfig.about
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { siteConfig } from '../lib/site-config';
+import { siteConfig } from '../config/site';
+
+const a = siteConfig.about;
 ---
 
 <BaseLayout
-  title="about"
-  description="ClaudeStack — written by a practitioner shipping production systems with Claude Code, not an influencer summarizing other people's tweets."
+  title="About"
+  description={`${siteConfig.name} — ${siteConfig.author.bio}`}
 >
   <section class="page-section">
     <div class="container">
       <div class="page-inner">
-        <div class="page-meta">manifest / why this exists</div>
-        <h1 class="page-title">written by a <span class="accent">practitioner</span>.</h1>
+        <div class="page-meta">{a.metaTag}</div>
+        <h1 class="page-title">{a.headline} <span class="accent">{a.headlineAccent}</span>.</h1>
 
         <div class="prose">
+          {a.body.map((p) => <p>{p}</p>)}
+
+          {a.sections.map((section) => (
+            <>
+              <h2>{section.heading}</h2>
+              {section.intro && <p>{section.intro}</p>}
+              <ul>
+                {section.bullets.map((bullet) => (
+                  <li set:html={bullet.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}></li>
+                ))}
+              </ul>
+            </>
+          ))}
+
+          <h2>Author</h2>
+          <p>{siteConfig.author.bio}</p>
           <p>
-            ClaudeStack is a publication, not a content farm. It exists because the gap between
-            "I tried Claude for a weekend" tweets and the lived experience of shipping a real
-            product with AI coding agents is enormous, and almost nothing public is filling it.
-          </p>
-
-          <p>
-            Every article here is written from the seat of someone running production code that
-            handles real money or real users. Patterns are tested for at least three months
-            before they become essays. Numbers are real. Failures are documented because the
-            failures are usually more useful than the successes.
-          </p>
-
-          <h2>What you'll find here</h2>
-
-          <p>
-            Three kinds of writing, deliberately:
-          </p>
-
-          <ul>
-            <li><strong>Essays</strong> — opinionated arguments about how to build with AI agents. Written when something has clicked and is worth defending.</li>
-            <li><strong>Patterns</strong> — reusable techniques. The orchestrator pattern. SPEC-driven development. The audit loop. Things that survived contact with production.</li>
-            <li><strong>Guides</strong> — walk-through references for specific tools or workflows. Less argument, more "here's exactly how I do X."</li>
-          </ul>
-
-          <h2>What you won't find</h2>
-
-          <ul>
-            <li>"10 prompts that will change your life" lists.</li>
-            <li>Hot takes on yesterday's announcement.</li>
-            <li>Affiliate-laundered tool reviews.</li>
-            <li>Anything I haven't actually shipped with.</li>
-          </ul>
-
-          <h2>Who writes this</h2>
-
-          <p>
-            One person. {siteConfig.author}. I'm building an algorithmic trading hedge fund as
-            the actual day job — Claude Code is the primary instrument I use to ship that code.
-            ClaudeStack is the place where the patterns I find useful get written down so they're
-            not lost to chat history.
-          </p>
-
-          <p>
-            If you'd like to argue with anything you read here, the <a href="mailto:hello@claudestack.dev">contact link</a> is real. If you want the new posts in your inbox, the <a href="#newsletter">newsletter</a> is the right place. If you want to support the work, the <a href="/shop">guide</a> is for sale.
-          </p>
-
-          <h2>What this site is not trying to be</h2>
-
-          <p>
-            Not a community. Not a course platform. Not a SaaS. Not a media business.
-            A publication, full stop. Long-lived essays, written carefully, with the
-            assumption that someone might read them in three years and the patterns
-            should still hold up.
-          </p>
-
-          <p>
-            That's it. Welcome.
+            Find me on <a href={siteConfig.author.github} rel="noopener">GitHub</a>
+            {siteConfig.author.email && (
+              <>, or <a href={`mailto:${siteConfig.author.email}`}>email me</a></>
+            )}.
           </p>
         </div>
       </div>

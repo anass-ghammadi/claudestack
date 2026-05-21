@@ -1,12 +1,13 @@
 ---
+// SPEC: BRIEF_CLAUDESTACK_PRODUCT.md#1.1 — fully driven by siteConfig
 import type { CollectionEntry } from 'astro:content';
-import { siteConfig } from '../lib/site-config';
+import { siteConfig } from '../config/site';
 
 interface Props {
   title?: string;
   description?: string;
   ogImage?: string;
-  article?: CollectionEntry<'articles'>;
+  article?: CollectionEntry<'blog'>;
   type?: 'website' | 'article';
   noindex?: boolean;
 }
@@ -24,7 +25,7 @@ const fullTitle = title ? `${title} — ${siteConfig.name}` : `${siteConfig.name
 const canonical = new URL(Astro.url.pathname, Astro.site ?? siteConfig.url);
 
 const resolvedOgImage = ogImage
-  ?? (article ? `/og/${article.id}.png` : siteConfig.defaultOgImage);
+  ?? (article ? `/og/${article.id}.png` : siteConfig.seo.defaultOgImage);
 const ogImageAbsolute = new URL(resolvedOgImage, Astro.site ?? siteConfig.url);
 
 const jsonLd = article
@@ -33,7 +34,7 @@ const jsonLd = article
       '@type': 'Article',
       headline: article.data.title,
       description: article.data.description,
-      author: { '@type': 'Person', name: siteConfig.author },
+      author: { '@type': 'Person', name: siteConfig.author.name },
       publisher: {
         '@type': 'Organization',
         name: siteConfig.name,
@@ -77,7 +78,7 @@ const jsonLd = article
     {article.data.updatedDate && (
       <meta property="article:modified_time" content={article.data.updatedDate.toISOString()} />
     )}
-    <meta property="article:author" content={siteConfig.author} />
+    <meta property="article:author" content={siteConfig.author.name} />
     <meta property="article:section" content={article.data.category} />
     {article.data.tags.map((tag) => <meta property="article:tag" content={tag} />)}
   </>
@@ -93,7 +94,9 @@ const jsonLd = article
 )}
 
 {/* Feed discovery */}
-<link rel="alternate" type="application/rss+xml" title={`${siteConfig.name} RSS`} href="/rss.xml" />
+{siteConfig.features.rss && (
+  <link rel="alternate" type="application/rss+xml" title={`${siteConfig.name} RSS`} href="/rss.xml" />
+)}
 
 {/* JSON-LD */}
 <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
