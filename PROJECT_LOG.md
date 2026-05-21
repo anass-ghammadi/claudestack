@@ -7,7 +7,7 @@
 
 ## Current state (snapshot)
 
-**Status**: Phase 1 of product-packaging complete locally (not yet pushed). Pending operator approval before Phase 2.
+**Status**: Phases 1 & 2 of product-packaging complete (pushed). Phase 3 (draft "How I built ClaudeStack" article) pending operator approval.
 
 | Item | Value |
 |---|---|
@@ -20,8 +20,10 @@
 | Blog articles | 12 (Anass, moved to `/blog/*` from `/articles/*`) |
 | Demo articles | 8 (Jane Developer, `/demo/*`, noindex) |
 | Themes | 3 (terminal default, amber, cyan) with switcher in header + mobile menu |
-| Rollback branch | `pre-product-packaging` (pushed) |
-| Last pushed commit | `2972a1d` (add PROJECT_LOG.md) |
+| Programmatic SEO pages | 30 at `/astro-template-for/[slug]` + `/templates` index |
+| Total HTML pages built | 85 |
+| Rollback branches | `pre-product-packaging`, `phase-1-complete`, `phase-2-complete` (all pushed) |
+| Last pushed commit | Phase 2 (to be filled after push) |
 
 ---
 
@@ -164,7 +166,18 @@ Distribution: 6 essays / 3 patterns / 3 guides.
 
 ## Change history
 
-### 2026-05-21 — Phase 1 of product-packaging brief complete (local)
+### 2026-05-21 — Phase 2 of product-packaging brief complete (pushed)
+- **2.1** Wrote `src/data/template-variants.json` with **30 unique variants** (~27,000 words of copy):
+  - 10 personas (developer-blog, ai-engineer, ml-engineer, devops-engineer, indie-hacker, startup-founder, technical-writer, open-source-maintainer, freelance-developer, engineering-manager)
+  - 8 styles (terminal-aesthetic, dark-mode, minimal-design, brutalist, cyberpunk, retro-computing, monospace-typography, developer-focused-design)
+  - 8 features (with-mdx-support, with-rss-feed, with-dark-mode, with-sitemap, with-search, with-newsletter, with-comments, with-tags-categories)
+  - 4 tech combos (astro-tailwind-template, astro-mdx-template, astro-typescript-template, astro-cloudflare-template)
+  - Each has unique 150-200 word intro, 3 use cases, 5 features, 4 FAQ items, CTA, 4 related variants
+- **2.2** Dynamic route `src/pages/astro-template-for/[slug].astro` — 30 static pages generated at build, each with H1+intro, use cases grid, features list, FAQ accordion, dual CTA (GitHub + Pro), 3 JSON-LD blocks (WebSite + SoftwareApplication + FAQPage), internal mesh to 3-4 related variants
+- **2.3** `/templates` index page lists all 30 variants grouped by category. Added "All template variants" link to footer.
+- Build: **85 HTML pages** now (was 54). All 30 variant URLs in sitemap. Schema.org valid.
+
+### 2026-05-21 — Phase 1 of product-packaging brief complete (pushed)
 - Created rollback branch `pre-product-packaging` (pushed to remote)
 - **1.1** Extracted all site copy into `src/config/site.ts` with typed schema (nav, footer, newsletter, features, SEO, analytics, hero, product, about). Deleted `src/lib/site-config.ts`. Validation gate: grep for spec-specific strings in components/pages/layouts returns empty ✓
 - **1.2** New `src/styles/themes.css` defines 3 themes (terminal/amber/cyan) via `[data-theme]` attribute. Both the brief's `--color-*` vars AND the legacy `--bg/--text/--green` etc. vars are theme-aware ✓

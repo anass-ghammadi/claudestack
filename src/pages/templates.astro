@@ -1,0 +1,157 @@
+---
+// SPEC: BRIEF_CLAUDESTACK_PRODUCT.md#2.3 — index of all template variants
+import BaseLayout from '../layouts/BaseLayout.astro';
+import variantsData from '../data/template-variants.json';
+import type { TemplateVariant } from '../data/template-variants-types';
+
+const variants = (variantsData as { variants: TemplateVariant[] }).variants;
+
+const grouped: Record<string, TemplateVariant[]> = {
+  persona: variants.filter((v) => v.category === 'persona'),
+  style: variants.filter((v) => v.category === 'style'),
+  feature: variants.filter((v) => v.category === 'feature'),
+  tech: variants.filter((v) => v.category === 'tech'),
+};
+
+const groupLabels: Record<string, string> = {
+  persona: 'By audience',
+  style: 'By aesthetic',
+  feature: 'By feature',
+  tech: 'By tech stack',
+};
+---
+
+<BaseLayout
+  title="All Template Variants"
+  description={`${variants.length} variants of the Astro blog template — by audience, aesthetic, feature, and tech stack.`}
+>
+  <section class="page-section">
+    <div class="container">
+      <div class="templates-head">
+        <div class="page-meta">templates / {variants.length} variants</div>
+        <h1 class="page-title">All <span class="accent">template variants</span></h1>
+        <p class="templates-desc">
+          The same template, framed for {variants.length} different audiences and use cases.
+          Pick the page that matches what you're building. They all clone from the same GitHub repo.
+        </p>
+      </div>
+
+      {Object.entries(grouped).map(([category, list]) => (
+        <section class="templates-group">
+          <h2>{groupLabels[category]}</h2>
+          <div class="templates-grid">
+            {list.map((v) => (
+              <a class="template-card" href={`/astro-template-for/${v.slug}`}>
+                <div class="template-card-cat">{v.category}</div>
+                <h3>{v.h1}</h3>
+                <p>{v.metaDescription}</p>
+                <div class="template-card-cta">View →</div>
+              </a>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .templates-head {
+    margin-bottom: 48px;
+    max-width: 720px;
+  }
+
+  .templates-desc {
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--text-soft);
+    margin-top: 20px;
+  }
+
+  .templates-group {
+    margin: 56px 0;
+  }
+
+  .templates-group h2 {
+    font-family: var(--sans);
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+    color: var(--text);
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+  }
+
+  .templates-group h2::before {
+    content: '## ';
+    color: var(--green);
+    font-family: var(--mono);
+    font-weight: 400;
+  }
+
+  .templates-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  @media (min-width: 768px) {
+    .templates-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (min-width: 1100px) {
+    .templates-grid { grid-template-columns: 1fr 1fr 1fr; }
+  }
+
+  .template-card {
+    padding: 20px;
+    border: 1px solid var(--line);
+    background: var(--bg-1);
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+
+  .template-card:hover {
+    border-color: var(--green);
+  }
+
+  .template-card-cat {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--green);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .template-card h3 {
+    font-family: var(--sans);
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--text);
+  }
+
+  .template-card:hover h3 { color: var(--green); }
+
+  .template-card p {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  .template-card-cta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: 0.05em;
+    align-self: flex-end;
+  }
+</style>

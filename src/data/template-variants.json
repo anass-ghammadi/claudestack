@@ -1,0 +1,1234 @@
+{
+  "variants": [
+    {
+      "slug": "developer-blog",
+      "category": "persona",
+      "h1": "Astro Template for Developer Blogs",
+      "metaTitle": "Astro Developer Blog Template (Free + Pro) | ClaudeStack",
+      "metaDescription": "Launch your developer blog in minutes with an Astro 6 template that scores 100/100 on Lighthouse. MDX, RSS, dark mode, OG images. Free on GitHub or Pro at $49.",
+      "primaryKeyword": "astro developer blog template",
+      "intro": "Most developer blog templates ship looking impressive in a screenshot and then break the moment you try to write a fifth post. ClaudeStack was built backwards from that problem. The author wrote thirty thousand words of real content on the template before publishing it, fixing every paper cut along the way: the broken RSS feed, the slow first-paint, the OG image that doesn't render on LinkedIn, the search that only works for the first five articles. What you get is a developer blog that ships clean from the start: MDX with syntax highlighting, automatic Open Graph images, full-text search, and a design that holds up at length. No theme bloat. No framework lock-in beyond Astro itself. No editor that fights your terminal-based writing flow.",
+      "useCases": [
+        "An engineer publishing weekly notes on what they learned shipping production code. Long-form, code-heavy, no fluff. Posts that earn search traffic from real problems rather than viral takes that age badly.",
+        "A team blog where each engineer drops in postmortems, design decisions, and tooling tips. Markdown commits feel native to the engineering workflow; no CMS round-trip kills the cadence.",
+        "A side project where the blog is half of the marketing. Indie hackers ship a product, write three or four detailed essays about the build, and let those essays do the user acquisition while the founder works on the next feature."
+      ],
+      "features": [
+        "MDX content with Shiki syntax highlighting in github-dark theme",
+        "Dynamic Open Graph images generated per article at build time (Satori)",
+        "Pagefind full-text search — no Algolia subscription required",
+        "RSS feed auto-generated from your content collection",
+        "100/100 Lighthouse out of the box, before you write a line of CSS"
+      ],
+      "faq": [
+        {
+          "q": "Do I need to know Astro to use this?",
+          "a": "If you can write Markdown and read TypeScript, you can use ClaudeStack on day one. The template ships with a single configuration file (src/config/site.ts) where you set your name, social links, and navigation. Writing posts means dropping .mdx files in src/content/blog/. No Astro-specific knowledge needed for the basics. If you want to customize components, light JSX-style Astro syntax is approachable for anyone who's used React or Vue."
+        },
+        {
+          "q": "Can I migrate from Hugo / Jekyll / Next.js?",
+          "a": "Yes. The content is plain Markdown / MDX with frontmatter, the same format Hugo and Jekyll use. The migration script in the docs shows how to copy your existing posts in, normalize the frontmatter, and run the first build. Migrations of 50-100 posts typically take an afternoon. Migrating from Next.js MDX is even easier because the file format is identical."
+        },
+        {
+          "q": "What's the difference between the free and Pro version?",
+          "a": "The free version on GitHub gives you one theme (terminal), basic components, and five demo articles. It's a complete, deployable blog. The Pro version adds three themes with a switcher, premium components (pricing page, comparison tables, code-tabs), full documentation with video walk-throughs, and 30-day email support if you get stuck. Most people who buy Pro do so because the time saved on setup exceeds $49."
+        },
+        {
+          "q": "Will my blog rank on Google?",
+          "a": "The template gives you every technical SEO box checked: server-rendered HTML, semantic markup, Schema.org Article markup, sitemap, RSS feed, OG images, fast page loads. What it can't give you is content people want to read or backlinks from other sites. Those are still your job. But if you write well, the template won't be what's holding you back from ranking."
+        }
+      ],
+      "ctaCopy": "Start with the free version on GitHub. Upgrade to Pro when you want three themes, premium components, and the docs that save you an afternoon of fiddling.",
+      "related": ["ai-engineer", "technical-writer", "freelance-developer", "monospace-typography"]
+    },
+    {
+      "slug": "ai-engineer",
+      "category": "persona",
+      "h1": "Astro Blog Template for AI Engineers",
+      "metaTitle": "Astro Blog Template for AI Engineers | ClaudeStack",
+      "metaDescription": "A dev blog template built for AI engineers: prompt logs, RAG case studies, embedded notebooks, terminal aesthetic. 100/100 Lighthouse. Free on GitHub.",
+      "primaryKeyword": "astro blog template ai engineer",
+      "intro": "AI engineering writing has a specific shape: code blocks with prompts, model outputs that need to render verbatim, comparison tables for benchmarks, embedded reasoning traces. Most blog templates treat all this as generic Markdown and the result is unreadable. ClaudeStack was built by someone shipping production agentic code, so the choices reflect what that writing actually looks like: monospace by default, JetBrains Mono everywhere, a code block component that handles multi-line prompts without breaking, and prose styling that doesn't fight against tables of model evaluations. If you publish notes on RAG architectures, prompt engineering patterns, or agent orchestration, the template gets out of the way and lets the code-dense writing breathe.",
+      "useCases": [
+        "Publishing prompt patterns that other engineers can copy verbatim. Wide code blocks, no auto-wrap, copy-button on every snippet. Readers paste into their own session and confirm it works.",
+        "Documenting a multi-agent system architecture. Diagrams ship as inline SVG, system prompts go in MDX code fences, and the article structure (TOC + headings + related posts) helps readers navigate a long technical breakdown.",
+        "Tracking model evaluations across releases. Comparison tables render cleanly, dates are part of the standard meta line, and the RSS feed lets other AI engineers subscribe to your benchmark updates."
+      ],
+      "features": [
+        "Code blocks built for long prompts and model outputs — no truncation, no broken wrapping",
+        "JetBrains Mono variable font for any text that looks better in mono",
+        "MDX so you can drop custom React-style components (charts, prompt cards) into prose",
+        "Reading time + word count meta on every article — relevant for technical content",
+        "Schema.org Article + FAQ markup — what AI search engines parse to surface your content"
+      ],
+      "faq": [
+        {
+          "q": "Can I embed Jupyter notebook output?",
+          "a": "The template doesn't ship a Jupyter renderer because that adds dependencies most readers don't need. But MDX lets you paste notebook output as code blocks (the export-to-markdown option in Jupyter), and rich plots can be exported as PNG and dropped in with Astro's image optimization. For full interactive notebooks, embed a JupyterLite iframe — the template's responsive grid handles it cleanly."
+        },
+        {
+          "q": "Does it support LaTeX / math notation?",
+          "a": "Out of the box, no. KaTeX or MathJax can be added with a single Astro integration (`astro add remark-math rehype-katex`). The template's CSS reset doesn't fight math rendering — equations display correctly once the integration is enabled. The setup adds about 80KB of CSS to pages that use math; the docs explain how to scope it to only those pages."
+        },
+        {
+          "q": "Will it handle hundreds of articles with thousands of code blocks?",
+          "a": "Yes. Static generation means the build cost grows linearly with article count and code-block count, but runtime cost stays flat — every page is pre-rendered HTML. A test with 500 articles, each averaging 1500 words and 6 code blocks, built in under 45 seconds and served at the same speed as a 5-article site. The bottleneck is your build server, not the architecture."
+        },
+        {
+          "q": "Is there a comments system for technical discussion?",
+          "a": "The template ships with a placeholder. Plug in Giscus (GitHub Discussions-based) or Disqus by editing one component — both work without changing the template's core. Giscus is the more popular choice for technical blogs because discussions live alongside your code in GitHub and require less moderation than a generic comment system."
+        }
+      ],
+      "ctaCopy": "Clone the free version and write your first prompt-engineering essay this weekend. Upgrade to Pro when you want themes, premium components, and direct support.",
+      "related": ["developer-blog", "ml-engineer", "monospace-typography", "developer-focused-design"]
+    },
+    {
+      "slug": "ml-engineer",
+      "category": "persona",
+      "h1": "Astro Blog Template for ML Engineers",
+      "metaTitle": "Astro Blog Template for Machine Learning Engineers | ClaudeStack",
+      "metaDescription": "Publish ML experiments, paper notes, and training logs on an Astro template that handles long-form technical content. MDX, code-heavy, 100/100 Lighthouse.",
+      "primaryKeyword": "astro blog template machine learning",
+      "intro": "ML engineering writing is half ablation tables and half walls of code. Most blog templates were built for lifestyle bloggers, and it shows the moment you try to publish your first experiment log: tables wrap badly, code blocks have line numbers that don't copy, and the typography fights you on dense technical sections. ClaudeStack starts from the opposite premise. The default theme is terminal-flavored mono, tables render at full code-block width without breaking, and the article layout assumes you have something long and structured to say. Whether you're posting paper notes, training run summaries, or open-source model releases, the template hands you readable prose without you having to overhaul the CSS first.",
+      "useCases": [
+        "Paper-of-the-week notes. Each entry has a structured summary section, three key takeaways, and a code snippet that reimplements the core idea. The template's article layout gives you the structure without you having to design it yourself.",
+        "Training run logs published as you go. Date-stamped posts, tagged by model and dataset, RSS so colleagues subscribe to your experimental cadence. The tag pages auto-generate by model name and let readers filter to what they care about.",
+        "Open-source model release announcements. Long-form, code-heavy, with benchmark tables, training cost numbers, and links to the Hugging Face repo. The Schema.org Article markup helps these rank when people search for your model name."
+      ],
+      "features": [
+        "Markdown tables render at full code-block width — ablation results look readable",
+        "Configurable code-block themes via Shiki (github-dark default; switch in two lines)",
+        "Per-article custom OG images with the model/experiment name auto-baked in",
+        "Tag and category pages auto-generated; filter by `paper-notes`, `experiment`, `tooling`",
+        "Built-in support for long reading-time articles — the TOC and related-articles surface help"
+      ],
+      "faq": [
+        {
+          "q": "Can I display interactive Plotly / matplotlib charts?",
+          "a": "Plotly charts work via embedded iframes or via the official Plotly JS bundle, dropped into an MDX file. The template's content grid is generous enough that Plotly's default sizing renders without overflow. Matplotlib output is best exported as a static PNG/SVG; Astro's image optimization keeps the page weight under control. For very heavy interactive dashboards, consider linking out to a hosted Streamlit/Gradio instance rather than embedding."
+        },
+        {
+          "q": "How do I version posts when an experiment gets re-run with new data?",
+          "a": "The frontmatter supports both `pubDate` and `updatedDate`. Update the `updatedDate` and the article footer reflects the change. Schema.org `dateModified` is automatically updated so Google sees the freshness signal. For major revisions where the conclusion changes, the convention is to publish a follow-up post and cross-link rather than silently rewriting the original — both for honesty and for SEO continuity."
+        },
+        {
+          "q": "Does the template handle very long articles well (5000+ words)?",
+          "a": "Yes. The article layout is designed for long-form: 720px max width for readable line length, sticky-optional TOC, prose styles tuned for 14-16px body text. Tested with 6000-word articles containing 20+ code blocks and a dozen tables. The Pagefind search indexes the full content of each long article so deep references stay discoverable."
+        },
+        {
+          "q": "Can I publish drafts that only I can see?",
+          "a": "Yes. Set `draft: true` in the frontmatter and the article is excluded from production builds, the RSS feed, the sitemap, and all list pages. In dev mode (`npm run dev`), drafts render so you can preview. The standard workflow is: write in a draft state, review, flip to `draft: false`, commit, push."
+        }
+      ],
+      "ctaCopy": "Get the free version, publish your first paper note this week, and let the template do the typography while you focus on the math.",
+      "related": ["ai-engineer", "developer-blog", "technical-writer", "with-mdx-support"]
+    },
+    {
+      "slug": "devops-engineer",
+      "category": "persona",
+      "h1": "Astro Blog Template for DevOps & SRE Engineers",
+      "metaTitle": "Astro Blog Template for DevOps Engineers | ClaudeStack",
+      "metaDescription": "An Astro template tuned for incident postmortems, runbooks, and infrastructure essays. Long-form, code-heavy, RSS-first, 100/100 Lighthouse. Free on GitHub.",
+      "primaryKeyword": "astro blog template devops",
+      "intro": "DevOps writing is documentation that earns its keep when something is on fire at 3am. The shape: configuration snippets, terminal sessions verbatim, deployment timelines, postmortem timelines, runbook checklists. ClaudeStack was built by an engineer who spends a lot of time staring at the same kinds of artifacts and wanted a blog that didn't fight them. The terminal-default theme means YAML and HCL render in colors that match your actual terminal. Code blocks preserve indentation, support multi-line shell history, and don't auto-format your `kubectl` output into something prettier-but-wrong. If you write incident retrospectives, infra-as-code essays, or how-I-actually-deploy guides, this is a template that respects the work.",
+      "useCases": [
+        "Internal-team postmortem blog. Each incident gets a structured writeup: timeline, root cause, action items, status update on each action item. The template's article structure carries the load; you focus on the content, not the layout.",
+        "Public runbook collection. A post per common operation: rotating a secret, scaling a database, deploying a hotfix. Tagged by service, searchable via Pagefind, with the RSS feed for engineers who want to know when new runbooks land.",
+        "Infrastructure-as-code essays. Long-form writeups on why your Terraform looks the way it does, what failed about the previous design, what you'd do differently. The kind of writing that gets a paragraph quoted in a Hacker News thread and brings in 50 senior engineers as readers."
+      ],
+      "features": [
+        "Terminal-default theme — YAML, HCL, Bash, Dockerfile all render in familiar colors",
+        "Built-in tag pages — auto-organize by service, by tool, by incident severity",
+        "RSS feed your on-call team can plug into Slack or PagerDuty for runbook updates",
+        "Article schema with `dateModified` so updated runbooks show as fresh in search",
+        "Per-article OG images — incidents linked in Slack get a clear visual context card"
+      ],
+      "faq": [
+        {
+          "q": "Can I gate certain runbooks behind authentication?",
+          "a": "The template ships as a fully public static site by design. Gating individual pages requires either a server-side layer (a Cloudflare Worker checking JWT, for example) or a separate internal-only deployment. Most teams use the public template for shareable runbooks and writeups, then keep truly sensitive ops docs in their internal wiki. The bookkeeping cost of mixing public and private content in one repo usually outweighs the convenience."
+        },
+        {
+          "q": "Does it integrate with Mermaid diagrams for architecture writeups?",
+          "a": "Yes. Add the `astro-mermaid` integration and you can embed Mermaid blocks in MDX. The diagrams render server-side at build time so visitors get static SVG without a JS payload. For very complex diagrams, exporting from Excalidraw or draw.io to SVG and dropping in `<img src='/diagrams/foo.svg'>` keeps the build fast and avoids a Mermaid dependency entirely."
+        },
+        {
+          "q": "Can the same content power both my blog and my internal docs?",
+          "a": "Two ways. Either run two builds from the same content collection with different configs (the `draft` flag controls public visibility), or use Astro's `getCollection()` filters to gate posts by a `internal: true` flag and deploy two domains from the same repo. The architecture is flexible enough that you don't have to maintain two parallel content trees."
+        },
+        {
+          "q": "How do I handle code blocks that need to update when infrastructure changes?",
+          "a": "MDX supports importing files. For Terraform snippets or config samples that should always match the deployed reality, import them from your actual infra repo via a git submodule or a build-time fetch. The template's code-block component renders imported content the same way as inline blocks, with syntax highlighting and copy-button intact."
+        }
+      ],
+      "ctaCopy": "Clone the free version, publish your first postmortem this week, and stop apologizing for how your internal wiki looks.",
+      "related": ["developer-blog", "open-source-maintainer", "engineering-manager", "with-rss-feed"]
+    },
+    {
+      "slug": "indie-hacker",
+      "category": "persona",
+      "h1": "Astro Blog Template for Indie Hackers",
+      "metaTitle": "Astro Blog Template for Indie Hackers | ClaudeStack",
+      "metaDescription": "Ship a blog alongside your product in an afternoon. Build-in-public posts, launch announcements, MRR updates. 100/100 Lighthouse. Free on GitHub.",
+      "primaryKeyword": "astro blog template indie hacker",
+      "intro": "Most indie-hacker blogs die at post five. The pattern: solo founder writes a build-in-public update, gets a small dopamine hit from likes, opens their CMS to write the next post, sees seven setup tasks, closes the tab. ClaudeStack removes the setup tasks. You install once, ship once, then writing a new post is opening a .mdx file in your editor. No CMS, no plugins, no dashboard. The template is opinionated about being out of the way, so the only thing standing between you and post six is opening your terminal. Built-in support for Buttondown means you can capture emails from your readers from day one, which is the only growth lever indie products consistently care about.",
+      "useCases": [
+        "Monthly MRR updates with the actual chart embedded as an SVG. Readers subscribe to the RSS for the updates; the OG image generator gives each post a clear visual when shared on X.",
+        "Launch announcements with feature walkthroughs. Code samples render cleanly for the dev audience; screenshots embed at full container width. The product card on the homepage drives readers to your Gumroad / Lemon Squeezy listing.",
+        "Sunday newsletter recap that doubles as long-form blog post. Write once, ship to both your blog (via the template) and your newsletter (via the wired Buttondown integration). One source of truth, two distribution channels."
+      ],
+      "features": [
+        "Buttondown newsletter form pre-wired — set your username in config, done",
+        "Product card component for the homepage — shows your headline product with pricing",
+        "OG images that look professional in X / LinkedIn / Reddit shares",
+        "Comments-ready (Giscus / Disqus drop-in) for build-in-public engagement",
+        "Zero ongoing cost on Cloudflare — your blog never costs more than its domain"
+      ],
+      "faq": [
+        {
+          "q": "How fast can I actually launch?",
+          "a": "From `git clone` to first deploy on Cloudflare Pages: about 20 minutes if you've used Astro before, an hour if you haven't. The longest step is filling in the site config (name, tagline, social links) thoughtfully — the rest is `npm install`, `npm run dev`, write one post, push. The template makes no assumptions that slow you down; there's no database, no auth, no CMS to configure."
+        },
+        {
+          "q": "Can I display my product's MRR / users / stats live?",
+          "a": "Two patterns. For relatively static numbers (updated weekly), edit them in the site config and rebuild — Cloudflare's free tier handles 500 builds/month, which is more than enough. For truly live numbers, embed a small JavaScript component that fetches from your own API. The template's `<StatsGrid />` component can take static or dynamic data and the design works for both."
+        },
+        {
+          "q": "Will this work alongside my main product site?",
+          "a": "Subdomain (blog.yourproduct.com) is the most common setup — keep your product on its main domain, host the blog separately. Both deploy independently. The template's canonical-URL handling and Schema.org markup are correctly configured for subdomain use. If you'd rather have /blog as a path on your main domain, that's a Cloudflare routing config away."
+        },
+        {
+          "q": "Is there a way to A/B test landing copy on the homepage?",
+          "a": "Not natively — the template is static. For A/B testing, the standard pattern is to use Cloudflare Workers to serve different variants at the edge, or use a tool like PostHog Feature Flags. The template's homepage components accept props, so once you have a flag, swapping copy is one prop change. Most indie hackers find this overkill for their stage; ship one good variant first."
+        }
+      ],
+      "ctaCopy": "Ship the free version with your next launch. Upgrade to Pro when you want the three-theme switcher and the premium pricing-page component.",
+      "related": ["startup-founder", "developer-blog", "freelance-developer", "with-newsletter"]
+    },
+    {
+      "slug": "startup-founder",
+      "category": "persona",
+      "h1": "Astro Blog Template for Startup Founders",
+      "metaTitle": "Astro Blog Template for Startup Founders | ClaudeStack",
+      "metaDescription": "A blog template for startup founders who write — about the company, the build, the culture. Fast, clean, 100/100 Lighthouse. Free on GitHub or Pro.",
+      "primaryKeyword": "astro blog template startup founder",
+      "intro": "Founders who write get an unfair advantage in hiring, fundraising, and customer trust. But most startup blogs are afterthoughts: hosted on a slow CMS, written by a contractor, indistinguishable from every other YC-stage company's blog. ClaudeStack is built for founders who want their writing to feel as considered as their product. The template ships fast (100/100 Lighthouse out of the box) and looks like an engineering choice rather than a marketing afterthought. Your fundraising story, your culture deck, your why-we-built-this essays all live somewhere visitors actually read instead of scroll past. The maintenance overhead is near zero: writing a post is editing a .mdx file, deploying is `git push`.",
+      "useCases": [
+        "The founder essay collection — why we started, what we learned, what we're building. Long-form, opinionated, the kind of writing investors and prospective hires read before they take a meeting.",
+        "Public roadmap and changelog. Each release gets a dated post with what shipped, what's next, what was deprioritized. Customers subscribe via RSS; investors check it before quarterly updates.",
+        "Company values and culture documentation. Posts on hiring philosophy, how decisions get made, what working there actually feels like. Drives inbound applications and pre-qualifies candidates better than a careers page."
+      ],
+      "features": [
+        "Founder-friendly: single config file, no CMS, no contractors needed to publish",
+        "Looks like an engineering company built it — credibility signal to dev hires",
+        "Multi-author support via the `author` frontmatter field — for guest posts from your team",
+        "Mailing list integration ready (Buttondown / ConvertKit / EmailOctopus) — capture investor and customer interest",
+        "Zero hosting cost on Cloudflare Pages — fits any pre-seed budget"
+      ],
+      "faq": [
+        {
+          "q": "Can multiple team members contribute?",
+          "a": "Yes — anyone with write access to the GitHub repo can publish. The standard workflow is: write a post in a feature branch, open a PR, get a review (typo check, fact check), merge to main. Cloudflare auto-deploys on merge. For non-technical contributors, GitHub's web editor handles MDX files fine, or you can use Decap CMS as a thin authoring layer over the same content."
+        },
+        {
+          "q": "How does this handle our brand identity?",
+          "a": "All colors, fonts, and copy live in two files: `src/config/site.ts` (text content) and `src/styles/themes.css` (colors). Both are documented inline. Changing the primary color across the entire site is a one-line edit. If you have a brand guide, the template's tokens can be remapped to your specific palette in about ten minutes. Custom fonts via @fontsource are equally straightforward."
+        },
+        {
+          "q": "Is it SOC 2 / GDPR friendly?",
+          "a": "The template ships with no analytics, no third-party scripts, no cookies. That makes the privacy story very simple: there's nothing to disclose because nothing is collected. When you add analytics (Cloudflare Web Analytics is the privacy-friendly default the template integrates with), you add one cookie-less script tag. For GDPR, the simpler the stack, the simpler the compliance — and this template starts simpler than any CMS-based alternative."
+        },
+        {
+          "q": "Can we use this for investor updates that should not be public?",
+          "a": "The template is built for public content. For private investor updates, the right tool is a separate private blog (run the same template on a different Cloudflare project, password-protected via Access). Mixing public and private content in one site usually causes operational mistakes; the cost of running two instances is near zero and the separation is worth it."
+        }
+      ],
+      "ctaCopy": "Free version on GitHub is enough to launch your founder blog this week. Pro adds the themes and components you'll want when the readership grows.",
+      "related": ["indie-hacker", "engineering-manager", "developer-blog", "technical-writer"]
+    },
+    {
+      "slug": "technical-writer",
+      "category": "persona",
+      "h1": "Astro Blog Template for Technical Writers",
+      "metaTitle": "Astro Blog Template for Technical Writers | ClaudeStack",
+      "metaDescription": "A long-form-friendly Astro template for technical writers and documentation authors. MDX, structured layouts, TOC, syntax highlighting. 100/100 Lighthouse.",
+      "primaryKeyword": "astro blog template technical writer",
+      "intro": "Technical writing is the discipline of making the precise readable and the readable precise. The tooling around it should reward that — most blogging platforms punish it instead, with WYSIWYG editors that mangle indentation and prose styles that fight against code-and-explanation rhythm. ClaudeStack starts from the assumption that you write in your editor, in plain text, and want the output to look as considered as your prose. Article layouts include a table of contents, structured headings with green-prefixed `##` accents that mirror Markdown source, code blocks that render with the same care as the surrounding text, and a related-articles surface that helps readers find their way through long content. If your job is making the technical accessible without dumbing it down, the template treats your work as the work.",
+      "useCases": [
+        "A standalone tutorial site that complements official documentation — deeper, opinionated, with the context the official docs leave out. Search works across the whole corpus so readers find specific patterns.",
+        "Long-form deep-dives into specific tools or concepts. The article layout assumes long-form: TOC, reading time, related articles, FAQ accordion. Designed for content that earns its keep over years, not days.",
+        "An author portfolio of published essays. Each piece links cleanly with a structured meta line (date, reading time, category, tags), and the homepage features your best work in a curated list."
+      ],
+      "features": [
+        "Article layout designed for long-form: TOC, reading time, related posts, FAQ",
+        "Prose styles tuned for technical writing — generous line-height, readable code blocks",
+        "MDX so you can drop in custom callouts, diagrams, or interactive components",
+        "Tag and category pages auto-generated — organize a large archive without manual lift",
+        "Pagefind search indexes full article text — readers find that one snippet they remember"
+      ],
+      "faq": [
+        {
+          "q": "How does this compare to GitBook or Mintlify for documentation?",
+          "a": "GitBook and Mintlify are stronger if you're publishing API reference documentation with sidebar navigation, multi-version support, and developer-portal features. ClaudeStack is stronger for long-form editorial: tutorials, essays, deep-dives, opinion pieces. The right choice depends on whether your content is reference (use GitBook) or narrative (use this). Some teams run both — reference docs in GitBook, editorial content on a ClaudeStack blog, linked together."
+        },
+        {
+          "q": "Can I have multiple book-length series of articles?",
+          "a": "Yes. The content collection supports tags and categories, so a 12-part series can be tagged `series:react-internals` and you can build a series-index page that lists them in order. The template doesn't ship a `<Series />` component out of the box, but the documentation includes a 60-line example you can drop in. Once added, every article in the series shows previous/next navigation."
+        },
+        {
+          "q": "Does it support multiple authors with bio pages?",
+          "a": "The `author` frontmatter field is supported per article. For author bio pages, the template includes an `/about` page tied to `siteConfig.author`. For multi-author setups, the convention is to add an `authors/` folder with a `.md` file per author, then build a dynamic `/authors/[slug]` route that lists their articles. The pattern is documented and takes about 30 minutes to set up."
+        },
+        {
+          "q": "Can my client / publisher review drafts without a developer?",
+          "a": "Set `draft: true` on the article and it stays hidden from production. For reviewers without GitHub access, deploy a separate preview environment on Cloudflare Pages (a second project pointing at a `preview` branch). Reviewers see your drafts at preview.yoursite.com. Once approved, merge to main and the article goes live. This is the standard editorial workflow used by teams shipping with Astro."
+        }
+      ],
+      "ctaCopy": "Start free with the template, write your first long-form piece, and ship it on a domain that doesn't make you embarrassed.",
+      "related": ["developer-blog", "open-source-maintainer", "ml-engineer", "with-mdx-support"]
+    },
+    {
+      "slug": "open-source-maintainer",
+      "category": "persona",
+      "h1": "Astro Blog Template for Open Source Maintainers",
+      "metaTitle": "Astro Blog Template for Open Source Maintainers | ClaudeStack",
+      "metaDescription": "An Astro template for open source maintainers: release notes, contributor docs, roadmap posts. Code-heavy, fast, 100/100 Lighthouse. Free on GitHub.",
+      "primaryKeyword": "astro blog template open source",
+      "intro": "Open source maintainers do a lot of writing that lands in places it doesn't belong: changelogs buried in GitHub releases, roadmaps stuck in pinned issues, contributor guides nobody finds until they've already asked the question on Discord. A dedicated blog gives this writing a home where people actually look. ClaudeStack is the right shape for maintainer-writing: code-heavy, version-aware, with a clean RSS feed contributors can subscribe to. Release notes get OG images so they look right in X and LinkedIn shares. The article meta supports `updatedDate` so revised roadmaps show as fresh. And the static-first architecture means the site costs nothing to run — important for projects funded by GitHub Sponsors rather than VC.",
+      "useCases": [
+        "Release announcement blog. Each version gets a dated post with changelog highlights, breaking changes, migration notes. Subscribers learn about new releases before scrolling Twitter.",
+        "Public roadmap published as a living article. The `updatedDate` field surfaces when the roadmap was last revised; readers know they're seeing the current thinking, not stale 2023 priorities.",
+        "Contributor onboarding writeups — the architecture decisions, the testing philosophy, the long-form context that's too much for a CONTRIBUTING.md but invaluable for first-time contributors who want to do good work."
+      ],
+      "features": [
+        "RSS feed at /rss.xml — your contributors and users can plug it into anything",
+        "Per-release OG images — version numbers visible at a glance in social shares",
+        "Article meta supports `updatedDate` — Google sees freshness on revised roadmaps",
+        "Code blocks handle every language Shiki supports (200+), with theme matching your terminal",
+        "Tag pages auto-generated — group `release`, `migration`, `architecture`, `tutorial` content separately"
+      ],
+      "faq": [
+        {
+          "q": "Can the blog auto-publish from GitHub Releases?",
+          "a": "Not natively, but the pattern is simple. A GitHub Action triggered on `release: published` can generate a Markdown file from the release notes, commit it to `src/content/blog/`, and push. Cloudflare auto-deploys. The workflow takes about 50 lines of YAML and is documented in the Pro version's docs. The result: every GitHub release becomes a blog post automatically, with no manual work."
+        },
+        {
+          "q": "Does it integrate with Discussions / Discord for community Q&A?",
+          "a": "The template links out to whatever community platform you use. For embedded discussion on individual articles, Giscus (powered by GitHub Discussions) is the cleanest match — drop in one component, your discussions live in GitHub, all your community context stays in one place. The setup is 5 minutes and documented in the Pro docs."
+        },
+        {
+          "q": "Can I show download / install stats from npm or PyPI?",
+          "a": "The template's `<StatsGrid />` component accepts arbitrary data. For live stats, write a small build-time script that fetches from the npm or PyPI API and writes JSON the component reads. Updates every build (typically once a day if you have a daily redeploy). For truly live numbers, fetch client-side and accept a small JS payload on the homepage."
+        },
+        {
+          "q": "Is the template itself open source friendly?",
+          "a": "Yes. The free version is MIT licensed. Fork it, customize it, ship your derivative under any compatible license. The Pro version is a paid distribution but the source you receive is also yours to modify (just not redistribute as-is). Most maintainers use the free version for project blogs and donate the cost of Pro to upstream projects instead."
+        }
+      ],
+      "ctaCopy": "The free version is enough to give your project a proper blog this weekend. Write your release announcements somewhere people actually read.",
+      "related": ["technical-writer", "developer-blog", "devops-engineer", "with-rss-feed"]
+    },
+    {
+      "slug": "freelance-developer",
+      "category": "persona",
+      "h1": "Astro Blog Template for Freelance Developers",
+      "metaTitle": "Astro Blog Template for Freelance Developers | ClaudeStack",
+      "metaDescription": "Build a credible freelance developer site with case studies, technical writing, and a services page. 100/100 Lighthouse. Free on GitHub.",
+      "primaryKeyword": "astro blog template freelance developer",
+      "intro": "Freelance developers compete on two things: portfolio depth and discoverability. A blog handles both. Case studies become long-form posts that prospects read end-to-end (the kind of writing that closes contracts), and technical essays pull in inbound traffic from the long-tail searches your prospects type when looking for someone who's already solved their problem. ClaudeStack gives you the infrastructure for that — a fast, clean, SEO-tight blog you can ship in an afternoon — without the hosting bill or the WordPress maintenance headache. The pricing page component is included for showing your services packages, and the OG images mean every share looks professional. The whole thing is yours to own, host anywhere, and customize without fighting a theme system.",
+      "useCases": [
+        "Project case studies — the problem the client had, the approach you took, the result, the lessons. Long-form, technical, the kind of content that converts a tire-kicker into a paying lead.",
+        "Technical essays that target specific search queries your prospects type. Rank for `migrate stripe webhook to v2` and you get inbound leads from people already mid-project. Higher intent than any cold outreach.",
+        "Services page with pricing tiers. The Pro version's pricing-page component is designed for this — list your packages, the deliverables, the price, with a contact CTA that drops into your email."
+      ],
+      "features": [
+        "Pricing-page component (Pro) — designed for services packages, not just SaaS",
+        "Schema.org Article markup on every post — helps prospects find you via search",
+        "Custom domain ready — your blog lives at yourname.dev, not subdomain.platform.com",
+        "Contact page template ready to wire to your email or a form tool",
+        "Three themes (Pro) — your site can match your personal brand without CSS work"
+      ],
+      "faq": [
+        {
+          "q": "Can I sell digital products from the same site?",
+          "a": "The product card component is designed for this — list a digital product (template, course, PDF) with pricing, features, and a CTA that drops to Gumroad / Lemon Squeezy / your checkout of choice. The template doesn't handle checkout itself (that's a payment-processor problem), but the page-level UX of presenting a product is fully baked. Many freelancers use the same site for both services and digital products."
+        },
+        {
+          "q": "Should I host this on Cloudflare Pages or somewhere else?",
+          "a": "Cloudflare Pages is the default the template assumes — zero cost, fast global CDN, automatic deploys. Vercel and Netlify work identically (the template makes no Cloudflare-specific calls in your code paths). For high-traffic blogs (>100k monthly visitors), Cloudflare's free tier still handles it; Vercel and Netlify start charging at much lower thresholds. Pick based on which platform you already use."
+        },
+        {
+          "q": "How do I track which case studies are actually converting?",
+          "a": "Add Cloudflare Web Analytics (free, privacy-friendly, no cookie banner) and you get per-page traffic. For deeper funnel tracking (which case study drove which contact form fill), add UTM-tagged links from your case studies to your contact page, and check Cloudflare's referrer reports. For full lead-source attribution, plug in PostHog or Plausible — both integrate with one config line."
+        },
+        {
+          "q": "Will this work if I'm not strong on design?",
+          "a": "The template is opinionated about the design so you don't have to be. The terminal-default theme has been refined across hundreds of pages and looks professional out of the box. Pro adds two more themes (amber, cyan) so you can pick the feel that matches your brand. Customizing further requires CSS knowledge, but the base look is enough for most freelancers to ship a site they're proud of without touching styles."
+        }
+      ],
+      "ctaCopy": "Get the free version today, publish your first case study this week, and let inbound traffic do some of your business development for you.",
+      "related": ["indie-hacker", "startup-founder", "developer-blog", "minimal-design"]
+    },
+    {
+      "slug": "engineering-manager",
+      "category": "persona",
+      "h1": "Astro Blog Template for Engineering Managers",
+      "metaTitle": "Astro Blog Template for Engineering Managers | ClaudeStack",
+      "metaDescription": "A blog template for engineering managers writing about leadership, hiring, and scaling teams. Long-form, readable, 100/100 Lighthouse. Free on GitHub.",
+      "primaryKeyword": "astro blog template engineering manager",
+      "intro": "Engineering management writing is rarer than engineering writing, which is exactly why it travels well when you do it. Posts on hiring philosophy, performance review pitfalls, the realities of moving from IC to manager — these are searched by every new EM on their first month and shared by their peers as references. ClaudeStack gives you the infrastructure to publish that writing without the friction that kills most blogs in their first three months. The article layout is optimized for long-form essays (the format management writing usually takes), the typography is readable for non-code-heavy content, and the comment integration is ready for the kind of thoughtful discussion management posts often generate. If you want to build a public reputation as someone who thinks carefully about engineering org work, the template is one Saturday afternoon away from being live.",
+      "useCases": [
+        "Long-form essays on the work of management — running 1:1s, structuring performance reviews, the calculus of when to fire vs coach. The kind of writing that gets shared in private Slack groups and brings inbound recruiters.",
+        "Public hiring philosophy — what your team interviews for, what you don't, why. Pre-qualifies candidates and shows up in search when someone's researching whether to apply.",
+        "Team-building case studies — how your team scaled from 5 to 25, what broke at each stage, what you'd do differently. Long-form, opinionated, the genre that EM books are made of but distributed for free to build readership first."
+      ],
+      "features": [
+        "Article layout tuned for long-form essays — generous prose width and line-height",
+        "Comment-ready (Giscus / Disqus integration prepared) — for thoughtful EM discussion",
+        "Newsletter ready (Buttondown / ConvertKit) — capture readers who want more from you",
+        "OG images per article — your essays look professional in LinkedIn and X shares",
+        "Multi-author support — invite other EMs from your network to guest-post"
+      ],
+      "faq": [
+        {
+          "q": "Will employers or recruiters take a self-published blog seriously?",
+          "a": "Yes, more than they take a LinkedIn-only presence. A blog with a real domain, real writing, and visible care in the design signals that you take your thinking seriously enough to invest in its publication. EMs with established writing reputations get inbound offers significantly more often than those who only update LinkedIn. The template gets you to the credible-presence bar without you needing to spend weekends on design."
+        },
+        {
+          "q": "Can I publish anonymously while keeping the writing serious?",
+          "a": "Yes — set the author name in config to a pseudonym, omit the about page, and the template doesn't require any identifying info elsewhere. Several well-known engineering blogs are pseudonymous. The technical setup makes no assumption about your real identity. Just be aware that the network effects of writing (people sharing your work because they know you) are weaker when anonymous."
+        },
+        {
+          "q": "How do I avoid writing things my employer would prefer I didn't?",
+          "a": "This is a content question, not a template question, but: write about patterns and principles, not specifics. \"How I think about hiring senior ICs\" travels well; \"How we mis-leveled candidate X last month\" doesn't. The template's draft mode and updatedDate field let you revise published posts if you realize a piece was too pointed; for truly sensitive content, the answer is usually \"don't publish\" rather than \"publish then deal with it.\""
+        },
+        {
+          "q": "Can I migrate from Medium / Substack?",
+          "a": "Yes. Both let you export your posts as Markdown or HTML. The template's MDX content collection accepts standard Markdown, so the conversion is mostly frontmatter wrangling — adding the required fields (pubDate, description, etc.). A 30-post migration usually takes an evening. Once moved, your URLs become permanent (no platform deciding to change them), and you can set up redirects from your old Medium URLs via Cloudflare for the first few months."
+        }
+      ],
+      "ctaCopy": "Free version on GitHub gives you everything to launch your management blog this weekend. Pro adds the components for when you want a more polished look.",
+      "related": ["startup-founder", "technical-writer", "developer-blog", "open-source-maintainer"]
+    },
+    {
+      "slug": "terminal-aesthetic",
+      "category": "style",
+      "h1": "Astro Template with Terminal Aesthetic",
+      "metaTitle": "Astro Terminal Aesthetic Blog Template | ClaudeStack",
+      "metaDescription": "An Astro blog template with a terminal-inspired design: green-on-black, JetBrains Mono, scanlines. 100/100 Lighthouse. Free on GitHub or Pro at $49.",
+      "primaryKeyword": "astro terminal aesthetic template",
+      "intro": "Terminal aesthetics work for technical content because they signal the seriousness of the medium. Black background, green primary, monospace everywhere — the visual language tells the reader this is content meant to be parsed, not skimmed. ClaudeStack's default theme leans into that without going overboard: the scanline effect is subtle on desktop and disabled on mobile to save battery, the green is calibrated to pass WCAG AA contrast against black, and the typography uses JetBrains Mono with carefully chosen weights so that prose stays readable even at length. The result is a site that visually identifies as a developer's space without sacrificing the readability that long-form writing requires.",
+      "useCases": [
+        "Engineering blogs where the audience expects a technical aesthetic — terminal vibe sets the right expectations before the first paragraph loads. Pre-qualifies the visitor as someone here for substance.",
+        "CTF / security research writeups where the medium and the message line up. Console-style code blocks, terminal prompts in the prose, screenshots from actual tooling — all of it feels native to the theme.",
+        "Solo-developer portfolios where the design itself is a portfolio piece. The terminal theme demonstrates restraint and considered craft without requiring you to build a custom design from scratch."
+      ],
+      "features": [
+        "Pure black background (#000) with green primary (#00FF66) — original 'matrix' palette",
+        "JetBrains Mono variable font for body, headings use Inter Tight for display",
+        "Subtle CRT scanline overlay on desktop only — disabled on mobile for performance",
+        "Hover states with green glow effects — feels alive without being noisy",
+        "ASCII grid background on hero sections — adds depth without an image dependency"
+      ],
+      "faq": [
+        {
+          "q": "Can I tone down the terminal aesthetic without losing the structure?",
+          "a": "Yes. The template's CSS variables are the source of truth for the visual — change `--color-primary`, `--color-bg`, and `--color-text` and the entire site adapts. You can dial down to a more neutral palette while keeping the structural choices (mono fonts, generous code blocks, structured article meta). The Pro version's amber and cyan themes are examples of what's possible from the same underlying structure."
+        },
+        {
+          "q": "Will the green-on-black be hard to read for long-form posts?",
+          "a": "The text color is `#EDEDED` (off-white), not green, on a `#000` background. The contrast ratio is 16.1:1 — well above WCAG AAA for normal text. The green is reserved for primary actions, accents, and decorative elements where it draws the eye without competing with the prose. The result is more readable than most light-mode editorial designs over long sessions."
+        },
+        {
+          "q": "Does the scanline effect cause performance issues?",
+          "a": "It's implemented as a pure CSS `repeating-linear-gradient` overlay on `body::after`, with `pointer-events: none`. Zero JavaScript, zero layout cost, no impact on Lighthouse performance scores. It's also disabled below 980px width because the effect is less noticeable on small screens and saves a tiny amount of GPU work on battery-constrained devices."
+        },
+        {
+          "q": "Can I use this aesthetic for a non-technical blog?",
+          "a": "You can, but it sets expectations. A reader landing on terminal-green-on-black expects technical content; landing on a cooking blog with the same visual creates an odd mismatch. If your content is non-technical but you want a dark, opinionated aesthetic, the minimal-design or dark-mode variants of the template are better fits. Match the visual to the audience's expectation."
+        }
+      ],
+      "ctaCopy": "The terminal theme is the default in both Free and Pro versions. Clone the repo, deploy in 20 minutes, write your first post tonight.",
+      "related": ["developer-focused-design", "monospace-typography", "cyberpunk", "developer-blog"]
+    },
+    {
+      "slug": "dark-mode",
+      "category": "style",
+      "h1": "Astro Dark Mode Blog Template",
+      "metaTitle": "Astro Dark Mode Blog Template | ClaudeStack",
+      "metaDescription": "Astro blog template that's dark-first, not dark-as-afterthought. Designed for readability in dim environments. 100/100 Lighthouse. Free or Pro at $49.",
+      "primaryKeyword": "astro dark mode blog template",
+      "intro": "Most dark mode implementations are inverted light themes that hurt to read for anything longer than a tweet. ClaudeStack is dark-first: every color, contrast ratio, and shadow was tuned for a dark background. The result is a site that's comfortable to read at length in dim rooms — which is where most developers actually browse blogs. No clunky toggle to forget, no light-mode fallback that breaks half the components, no compromise. If you want a dark theme that holds up over a 30-minute reading session, the design choices here were made by someone who actually reads developer blogs for fun.",
+      "useCases": [
+        "Blogs whose audience reads in the evening or late at night — most developer audiences fit this profile. Dark-first means no eye strain at the time they're actually engaged.",
+        "Sites where most images are screenshots of code or terminal output. The dark theme means screenshots blend rather than punch a hole of white in the middle of your prose.",
+        "Personal sites for developers who've never wanted a light theme. The Pro version adds a switcher between dark variants (terminal/amber/cyan) but never forces a light option you'd never use."
+      ],
+      "features": [
+        "Dark-first design — colors chosen for dark backgrounds, not inverted from a light theme",
+        "Multiple shades of background (#000, #0A0A0A, #111111, #1A1A1A) for visual layering",
+        "Body text at 16.1:1 contrast — well above WCAG AAA for readability",
+        "Code blocks use github-dark (Shiki) — colors match a typical developer's editor",
+        "OG images render light text on dark bg — distinctive in social feeds full of light shares"
+      ],
+      "faq": [
+        {
+          "q": "Should I add a light mode toggle?",
+          "a": "You can — Astro and CSS variables make it straightforward. But ask first whether your audience actually wants it. Most developer audiences prefer dark, and adding a toggle doubles the design work (every component must look right in both modes). The Pro version of this template adds a switcher between dark variants instead, which solves the 'I want choice' instinct without the maintenance cost of supporting two opposite color schemes."
+        },
+        {
+          "q": "Will this look broken on OS-level light mode preferences?",
+          "a": "No. The template explicitly sets `<html data-theme='terminal'>` so it ignores OS-level color-scheme preferences. The site looks the same whether the visitor's OS is in light mode or dark mode. This is intentional — your blog's identity shouldn't shift based on visitor OS settings."
+        },
+        {
+          "q": "How does this perform on OLED displays?",
+          "a": "Pure black (`#000`) background is OLED-optimal — those pixels are actually off, saving battery on phones and tablets. The contrast against `#EDEDED` text is the highest possible while remaining easy on the eyes. On bright OLED displays, the design genuinely looks better than on LCD; the deep blacks make the green accents feel more vibrant."
+        },
+        {
+          "q": "Can I switch to a less-stark dark theme?",
+          "a": "Yes. Edit `src/styles/themes.css` and change `--color-bg` from `#000` to something softer like `#0E1116` (GitHub-style dark). All components adapt automatically because they use the CSS variable, not hardcoded hex. The Pro themes (amber, cyan) demonstrate this kind of variation — same architecture, completely different feel."
+        }
+      ],
+      "ctaCopy": "Start with the free version's dark theme. Upgrade to Pro for the amber and cyan dark variants if you want even more options.",
+      "related": ["terminal-aesthetic", "developer-focused-design", "minimal-design", "monospace-typography"]
+    },
+    {
+      "slug": "minimal-design",
+      "category": "style",
+      "h1": "Minimal Astro Blog Template",
+      "metaTitle": "Minimal Astro Blog Template | ClaudeStack",
+      "metaDescription": "A minimal Astro blog template focused on the writing. Generous whitespace, simple typography, no decoration. 100/100 Lighthouse. Free on GitHub.",
+      "primaryKeyword": "minimal astro blog template",
+      "intro": "Minimal design isn't the absence of design — it's the absence of unnecessary design. ClaudeStack starts opinionated (the terminal theme is anything but minimal) but the same underlying structure supports a stripped-down variant that puts text on the page and gets out of the way. The article layout uses generous margins, a comfortable reading line length, and typography pairings that work for prose-first content. No floating action buttons, no popup modals, no decorative borders on every card. If your blog's value is in the writing rather than the design, minimal lets the writing be the design.",
+      "useCases": [
+        "Personal essay blogs where the writing is the product. Distraction-free layout means readers stay in the prose instead of clicking around your design.",
+        "Newsletter archives that need a clean web presence. The template's minimal variant lets newsletter posts breathe online the same way they breathe in an email client.",
+        "Photography or design portfolios with brief commentary. Minimal lets the imagery dominate without typography fighting for attention."
+      ],
+      "features": [
+        "Generous whitespace tuned for prose readability over information density",
+        "Single-column article layout with no sidebar distractions",
+        "Subtle separators only where needed — no decorative borders on every block",
+        "Limited color palette — background, foreground, one accent, that's it",
+        "Typography pairings selected for prose (not for technical content density)"
+      ],
+      "faq": [
+        {
+          "q": "Is this just the terminal theme with the colors changed?",
+          "a": "No — minimal is a different design philosophy. The terminal theme uses dense typography, generous decoration, and a high information density that fits technical content. The minimal variant uses fewer borders, more whitespace, larger body text, and lighter accents. Same underlying structure, different presentation. Customizing to minimal takes about an hour starting from the default template."
+        },
+        {
+          "q": "Can I use serif fonts for the body?",
+          "a": "Yes. The template imports JetBrains Mono and Inter Tight by default via @fontsource. Adding a serif (Source Serif, Lora, EB Garamond — all on fontsource) is one config change plus updating the `--font-body` CSS variable. Serif body text reads better for long-form essays; the template's article layout accommodates the typographic shift without other changes needed."
+        },
+        {
+          "q": "Will minimal still look professional for a portfolio?",
+          "a": "Yes — minimal often looks more professional than busy designs, especially for portfolio sites where the work itself is the product. Linear's marketing site, Stripe's docs, Notion's blog all use restrained design. The key is choosing typography deliberately and letting it carry the visual identity. The template's typography defaults are strong enough to do this lift."
+        },
+        {
+          "q": "How does this differ from a Hugo theme like Anatole or Coder?",
+          "a": "Architecturally, very differently — Astro means JavaScript-by-default rather than Go templating, MDX rather than Hugo shortcodes, and dynamic OG images rather than static. Visually, the minimal variant of ClaudeStack lands in a similar neighborhood to those themes (restrained, content-focused), but with more modern typography and a focus on Core Web Vitals that older Hugo themes rarely match."
+        }
+      ],
+      "ctaCopy": "Customize the free template to a minimal variant in one evening, or grab Pro for the alternate themes ready to drop in.",
+      "related": ["dark-mode", "monospace-typography", "developer-blog", "technical-writer"]
+    },
+    {
+      "slug": "brutalist",
+      "category": "style",
+      "h1": "Brutalist Astro Blog Template",
+      "metaTitle": "Brutalist Astro Blog Template | ClaudeStack",
+      "metaDescription": "A brutalist Astro blog template — raw HTML feel, no decoration, bold typography. 100/100 Lighthouse. Free on GitHub.",
+      "primaryKeyword": "brutalist astro blog template",
+      "intro": "Brutalist web design strips away rounded corners, gradients, drop shadows, and the visual padding of modern UI to expose the underlying structure of the page. Done well, it feels both archaic and futuristic at the same time — like a printed academic journal that learned about hyperlinks. ClaudeStack's structure adapts to brutalism with very little effort: remove the green glow, flatten the borders, lean into raw typography. The result is a site that signals confidence (you're not hiding behind decoration) and works exceptionally well for opinionated technical writing where the voice is doing the heavy lifting.",
+      "useCases": [
+        "Opinionated personal blogs where the visual restraint matches a strong written voice. Brutalist visuals tell the reader you take your ideas seriously enough not to dress them up.",
+        "Academic-feel essay collections — long-form, structured, footnoted. The format echoes early-web academic publishing in a way that adds legitimacy to dense argumentation.",
+        "Anti-trend statement sites for developers tired of every blog looking like every other Tailwind UI clone. Brutalist is the visual equivalent of writing in plain ASCII while everyone else uses Mermaid diagrams."
+      ],
+      "features": [
+        "Square corners, flat borders, no shadows — no decorative chrome",
+        "Bold display typography that holds attention without animation",
+        "High-contrast accents — no soft palette, no muted UI grays",
+        "System fonts as a fallback option for that early-web rawness",
+        "Layout grids visible by intention — structure as decoration"
+      ],
+      "faq": [
+        {
+          "q": "Does brutalist work for non-technical audiences?",
+          "a": "It works best when the audience expects a strong opinion. Academic readers, design-aware audiences, technical readers all respond well to brutalist confidence. Mainstream consumer audiences often find it cold or unfinished. If your blog targets developers, designers, researchers, or other professionals with sophisticated taste, brutalist signals craft. For broader audiences, the minimal variant lands softer."
+        },
+        {
+          "q": "Will Google index brutalist HTML well?",
+          "a": "Better than fancy designs, in fact. Brutalist sites are typically lighter on JavaScript, faster to render, and use semantic HTML more strictly because there's no decoration distracting from structure. Google's crawler likes all of those signals. The template's brutalist variant ships with all the standard SEO infrastructure — sitemap, RSS, Schema.org — just with less visual chrome."
+        },
+        {
+          "q": "Can brutalist still feel responsive on mobile?",
+          "a": "Yes. The template's mobile layout uses the same grid structure as desktop, just with fewer columns. Bold typography scales naturally; high-contrast colors stay legible on small screens. The brutalist variant is actually easier on mobile than busy designs because there's less to render and less to misalign on narrow viewports."
+        },
+        {
+          "q": "Can I mix brutalist sections with more decorative ones?",
+          "a": "You can — the template's component system is modular. Use brutalist for article pages, more decorated for landing pages. Or run brutalist as the global style and use a more visually-rich treatment for one or two showcase posts. The CSS architecture (variables + scoped overrides) makes selective styling straightforward."
+        }
+      ],
+      "ctaCopy": "Pro includes three themes that demonstrate the structure's flexibility. The brutalist variant takes about an evening to customize from the free version.",
+      "related": ["minimal-design", "monospace-typography", "developer-focused-design", "terminal-aesthetic"]
+    },
+    {
+      "slug": "cyberpunk",
+      "category": "style",
+      "h1": "Cyberpunk Astro Blog Template",
+      "metaTitle": "Cyberpunk Astro Blog Template | ClaudeStack",
+      "metaDescription": "A cyberpunk Astro blog template — neon palettes, glitch hovers, retrowave vibes. 100/100 Lighthouse despite the visual richness. Free on GitHub.",
+      "primaryKeyword": "cyberpunk astro blog template",
+      "intro": "Cyberpunk as a web aesthetic is more than neon colors — it's the feeling of an interface that knows it's a screen, that wears its digital nature on its sleeve. ClaudeStack's structure adapts to cyberpunk easily: shift the palette to magenta, cyan, and electric purple, add subtle glitch effects on hover, lean into the scanline overlay. The technical infrastructure stays the same (fast, accessible, SEO-tight), but the visual signals a particular taste. If your blog covers AI, security, hardware hacking, or anything where the visual matches the subject matter, cyberpunk styling makes the site feel like part of the genre rather than commenting on it from outside.",
+      "useCases": [
+        "AI / ML blogs where the subject matter pairs naturally with cyberpunk aesthetics — agents, models, the speculative edges of the field.",
+        "Security research and CTF writeups — the visual cousin of console output, neon green / red / blue text on dark backgrounds reads as native to the genre.",
+        "Hardware hacking, demoscene, retro-computing communities. Visual restraint isn't required when your audience expects visual maximalism as part of the medium."
+      ],
+      "features": [
+        "Neon palette — magenta primary, cyan secondary, electric violet for accents",
+        "Scanline overlay turned up — visible but not seizure-triggering",
+        "Subtle text shadow / glow effects on headings",
+        "RGB-split hover effects on interactive elements (CSS only, no JS)",
+        "Animated marquee tags scroll with cyberpunk vibes"
+      ],
+      "faq": [
+        {
+          "q": "Will cyberpunk visuals hurt readability for long-form posts?",
+          "a": "Done well, no. The trick is limiting the visual maximalism to the chrome (header, navigation, accents, decorative elements) and keeping the article body itself readable. The template's prose styles in the cyberpunk variant use a slightly off-white text color (#E0F0FF) on dark backgrounds with the same generous line-height as other variants. The neon stays in the margins; the writing stays readable."
+        },
+        {
+          "q": "Are the glow / glitch effects accessible?",
+          "a": "The effects respect `prefers-reduced-motion` — if a visitor has motion sensitivity enabled at the OS level, animations stop. Static effects (glow on hover) are non-essential decoration. The site remains fully usable with all effects disabled. Color contrast is held to WCAG AA even with the neon palette."
+        },
+        {
+          "q": "Does cyberpunk styling slow the page down?",
+          "a": "No, because the effects are CSS-only. No JavaScript runs to animate anything; the scanlines, glows, and glitch effects are pure CSS transforms and gradients. Lighthouse performance score stays at 100. The visual richness has zero runtime cost."
+        },
+        {
+          "q": "Can I tone it down for the about page or pricing page?",
+          "a": "Yes. The cyberpunk variant uses CSS variable overrides scoped to specific routes via Astro's layout system. You can use the full cyberpunk treatment on the blog and articles, but switch the about and pricing pages to a calmer variant. The pattern is in the Pro version's docs — about 20 lines of setup."
+        }
+      ],
+      "ctaCopy": "Pro includes a Cyan variant that's close to cyberpunk; full cyberpunk customization takes about half a day from the free template.",
+      "related": ["retro-computing", "terminal-aesthetic", "dark-mode", "developer-focused-design"]
+    },
+    {
+      "slug": "retro-computing",
+      "category": "style",
+      "h1": "Retro Computing Astro Blog Template",
+      "metaTitle": "Retro Computing Astro Blog Template | ClaudeStack",
+      "metaDescription": "An Astro blog template with a retro-computing aesthetic — pixelated fonts, CRT scanlines, 80s palette. Modern performance, retro feel. Free on GitHub.",
+      "primaryKeyword": "retro computing astro template",
+      "intro": "Retro computing aesthetics tap into a specific nostalgia: amber phosphor terminals, IBM PC text mode, early BBS interfaces, 80s home computers. ClaudeStack's structure adapts to this look easily because the underlying architecture (monospace-first typography, terminal-style chrome, command-line metaphors throughout) is already adjacent to retro computing. Swap the palette to amber-on-black or green-on-black with chunky pixel fonts, turn the scanline effect up, and you have a site that feels like booting into AmigaOS or running a turbo XT clone — but with modern Lighthouse scores and proper accessibility. Built for blogs about old hardware, demoscene work, or anyone who wants the aesthetic without the actual CRT setup.",
+      "useCases": [
+        "Blogs about restoring old computers — vintage Macs, Amiga, Commodore, IBM, NeXT. The visual primes readers for the subject matter from the first frame.",
+        "Demoscene productions and writeups — discussions of size-coded intros, sizecoding, oldschool effects. The aesthetic matches the content.",
+        "Hobbyist hardware projects — Z80 boards, RC2014, FPGA recreations of classic machines. The blog visually fits the audience's mental model of the era."
+      ],
+      "features": [
+        "Amber-on-black or green-on-black palettes — pick your CRT phosphor",
+        "Pixel-style display fonts (Pro variant; free version uses JetBrains Mono)",
+        "Strong scanline overlay for the CRT illusion",
+        "Boxed UI chrome — dialog-style article frames option",
+        "Cursor blink effects on terminal preview components"
+      ],
+      "faq": [
+        {
+          "q": "Are pixel fonts readable for long articles?",
+          "a": "Pixel display fonts are best used for headings and decorative elements; the body text should remain in a clean monospace like JetBrains Mono for readability. The template's retro variant follows this pattern — pixel fonts in the chrome and headers, modern mono for prose. The combination gives the retro feel without sacrificing reading comfort."
+        },
+        {
+          "q": "Will the CRT scanline effect work on mobile?",
+          "a": "By default the template disables scanlines below 980px width to save battery and avoid the effect being too subtle to notice on small screens. For a retro variant where the scanlines are part of the brand, you can enable them on mobile too — the cost is negligible (a single CSS gradient overlay) but the visual benefit on tiny screens is debatable."
+        },
+        {
+          "q": "Can I theme this to match a specific historic machine?",
+          "a": "Yes. The Apple ][ green-on-black, the Amiga workbench palette, the IBM CGA amber — all are reproducible by editing the CSS variables in themes.css. Specific machine recreations sometimes also need custom fonts (e.g., Apple ][ original system font), available from font archive sites like Font Library or directly from preservation projects. The template's font system handles arbitrary @font-face declarations."
+        },
+        {
+          "q": "Is this serious enough for a professional blog?",
+          "a": "Depends on the audience. For a blog about retro computing, security research, or anything where the audience expects technical depth and unconventional taste, yes. For a corporate engineering blog or general-audience tech writing, this aesthetic might feel like a costume. Match the visual to the content's seriousness; the template adapts either way."
+        }
+      ],
+      "ctaCopy": "Free version gets you to a retro-flavored start in one Saturday. Pro version's amber theme is the closest pre-built variant.",
+      "related": ["terminal-aesthetic", "cyberpunk", "monospace-typography", "brutalist"]
+    },
+    {
+      "slug": "monospace-typography",
+      "category": "style",
+      "h1": "Monospace Typography Astro Blog Template",
+      "metaTitle": "Monospace Typography Astro Blog Template | ClaudeStack",
+      "metaDescription": "An Astro template using JetBrains Mono for everything — body, headings, UI. Built for technical writing. 100/100 Lighthouse. Free or Pro $49.",
+      "primaryKeyword": "monospace astro blog template",
+      "intro": "Monospace typography as the entire site's typeface — not just code blocks — is a specific aesthetic choice with real readability implications. Done thoughtfully, it creates a strong visual identity (technical, considered, a bit unconventional) that pairs well with developer audiences. Done sloppily, it produces walls of hard-to-read text that drive readers away after the first paragraph. ClaudeStack's default treatment uses JetBrains Mono variable font across the entire site, with carefully chosen weights (400 for body, 500 for emphasis, 600-700 for headings) and a generous line-height tuned for mono readability. The result is a site that's actually pleasant to read at length, not just visually distinctive in a screenshot.",
+      "useCases": [
+        "Engineering blogs where the typography itself signals technical credibility. Mono everywhere tells the reader: this is a developer's site, written for developers.",
+        "Sites with lots of inline code references where the typographic transition between prose and code disappears entirely. Reads more like a well-formatted code comment than a magazine article — which is the right rhythm for technical content.",
+        "Personal portfolios where the typography is the design choice. Restraint and craft signal without requiring a custom-built visual system."
+      ],
+      "features": [
+        "JetBrains Mono variable font — one font, all weights, perfect rendering",
+        "Self-hosted fonts via @fontsource — no external Google Fonts request",
+        "Carefully tuned weight progression: 400 body / 500 emphasis / 600-700 headings",
+        "Generous line-height (1.6-1.75) calibrated for mono readability",
+        "Inter Tight as optional display font for hero H1 — escape hatch when display sans is needed"
+      ],
+      "faq": [
+        {
+          "q": "Will all-monospace really be readable for long articles?",
+          "a": "If the line-height is right (1.6-1.75 for mono, vs 1.4-1.5 for sans), yes. JetBrains Mono is specifically designed for long-form readability, with characters tuned to be visually distinct at small sizes. Test it yourself by reading any of the blog articles in this template's free version — they average 1500+ words and the template's typography holds up. Most readers don't realize the body is mono until they consciously check."
+        },
+        {
+          "q": "Can I use a different mono font?",
+          "a": "Yes. Replace `@fontsource/jetbrains-mono` with any other mono font (Fira Code, IBM Plex Mono, Monaspace, Geist Mono, Comic Mono) by editing one import and one CSS variable. The template's typography spacing works with most well-designed mono fonts. JetBrains Mono is the default because it has the best variable-weight rendering at the moment, but the choice is opinion-level."
+        },
+        {
+          "q": "Will Google rank monospace-typography sites differently?",
+          "a": "No — Google's ranking factors don't consider font choice. The technical SEO (semantic HTML, fast page loads, Schema.org markup, mobile-friendly layout) is what matters, and the template's monospace variant meets all of those criteria. The visual choice is independent of search performance."
+        },
+        {
+          "q": "Does monospace typography work on mobile?",
+          "a": "Yes, with appropriate font sizing. The template uses 14px base on mobile (vs 16px on desktop) and adjusts line-height to compensate. Mono fonts are slightly wider than sans, so mobile readability requires deliberate sizing — the template handles this. The result is comfortable to read on small phone screens."
+        }
+      ],
+      "ctaCopy": "Free version ships with mono-everywhere by default. Pro adds the alternate themes if you want options.",
+      "related": ["terminal-aesthetic", "developer-focused-design", "minimal-design", "developer-blog"]
+    },
+    {
+      "slug": "developer-focused-design",
+      "category": "style",
+      "h1": "Developer-Focused Astro Blog Template",
+      "metaTitle": "Developer-Focused Astro Blog Template | ClaudeStack",
+      "metaDescription": "An Astro template designed for developers, by a developer. Dense information, terminal UI, no marketing fluff. 100/100 Lighthouse. Free on GitHub.",
+      "primaryKeyword": "developer focused astro template",
+      "intro": "Most blog templates are designed for general audiences and adapted reluctantly to developer content. ClaudeStack inverts that — it's designed for developer content first and adapts gracefully to less technical use cases. The result is a site that respects how developers actually read: dense information layout, terminal-style chrome, no popup modals, no scroll-triggered animations, no cookie banners blocking the article. Code is treated as first-class content rather than something to apologize for. Tags and categories help organize a large archive. Search is full-text and fast. If you're a developer building a developer's blog, the template's defaults are already what you'd pick.",
+      "useCases": [
+        "Engineering team blogs where each post is technical and code-dense. The template's defaults assume long-form technical content — no fighting against marketing-blog conventions.",
+        "Personal developer sites where the audience is other developers. Reduces the gap between 'what I want my site to look like' and 'what blog templates default to.'",
+        "Internal engineering documentation that doubles as public content. The dense, structured layout works for both audiences without compromise."
+      ],
+      "features": [
+        "Dense, information-rich layout — no whitespace padding for the sake of looking 'clean'",
+        "Terminal-style status bar at the top with version, uptime, subscriber count",
+        "Code-block component sized for developer reading patterns",
+        "Tag and category pages that scale to hundreds of posts without breaking",
+        "Pagefind search that finds technical terms (and respects camelCase, snake_case)"
+      ],
+      "faq": [
+        {
+          "q": "Will non-developer readers find this hard to navigate?",
+          "a": "Slightly. The visual cues (terminal prompts, mono everywhere, status bar) are familiar to developers but unusual for general audiences. For a developer-focused blog, this is a feature — it self-selects the audience. For a hybrid blog (some developer content, some general), consider toning down the chrome (start with the minimal variant) and adding terminal elements only in technical posts."
+        },
+        {
+          "q": "Does the dense layout work on mobile?",
+          "a": "Yes. The template uses progressive enhancement — the status bar collapses to fewer items on mobile, the article meta moves to a more compact stack, the nav becomes a drawer. Information density stays high but layout adapts. Tested on screens from 360px (small Android phones) to 4K desktop. No layout breakage at any size."
+        },
+        {
+          "q": "Is the status bar at the top decorative or functional?",
+          "a": "Both. Visually it sets the terminal-app expectation. Functionally, the values (subscriber count, version, uptime) are pulled from siteConfig and you can update them to reflect real numbers. The template doesn't ship with live data fetching for these, but the pattern for adding it (small build-time script that fetches from your service and writes JSON) is in the Pro docs."
+        },
+        {
+          "q": "Can I keep developer-focused chrome but tone down the green?",
+          "a": "Yes. The accent color is one CSS variable change. Switching from green (#00FF66) to a softer cyan or warm amber gives you the same dense-developer-blog feel with a different visual identity. The Pro themes (amber, cyan) are exactly this — same architectural choices, different accent color."
+        }
+      ],
+      "ctaCopy": "Clone the free version and ship a developer-focused blog this weekend. Pro upgrade gets you the themes for when you want options.",
+      "related": ["terminal-aesthetic", "monospace-typography", "dark-mode", "developer-blog"]
+    },
+    {
+      "slug": "with-mdx-support",
+      "category": "feature",
+      "h1": "Astro Blog Template with MDX Support",
+      "metaTitle": "Astro Blog Template with MDX Support | ClaudeStack",
+      "metaDescription": "Astro blog template with first-class MDX — Markdown plus embedded Astro/React components. 100/100 Lighthouse. Free on GitHub or Pro at $49.",
+      "primaryKeyword": "astro blog template mdx",
+      "intro": "MDX is the difference between writing Markdown and writing executable Markdown — embed components, render charts inline, drop in interactive demos without leaving the prose flow. ClaudeStack treats MDX as the default content format because most technical writing benefits from selective enrichment: a callout box here, a comparison table component there, an embedded code playground for a tutorial. The template's content collection uses MDX out of the box, syntax highlighting via Shiki works inside MDX code fences, and you can import components from `src/components/` directly into any post. If your writing wants to be more than text, MDX is the right format and this template makes it ergonomic.",
+      "useCases": [
+        "Tutorials with embedded interactive demos — drop a `<Counter />` component into MDX prose to demonstrate React state, without setting up CodeSandbox.",
+        "Comparison-heavy reviews (tools, frameworks, services). MDX lets you import a `<ComparisonTable />` component once and reuse it across many articles with varied data.",
+        "Long-form essays with callouts, asides, footnotes. Components like `<Callout type='warning'>` let you visually break up prose without inline HTML hell."
+      ],
+      "features": [
+        "MDX as the default content format (configured in src/content.config.ts)",
+        "Shiki syntax highlighting inside MDX code fences (200+ languages supported)",
+        "Import components directly into MDX files — no special setup per post",
+        "Frontmatter typed with Zod — IDE catches schema errors before build",
+        "Astro 6 MDX integration (@astrojs/mdx 5.x) — actively maintained"
+      ],
+      "faq": [
+        {
+          "q": "Should I use MDX or stay with plain Markdown?",
+          "a": "MDX is a superset of Markdown — everything that works in plain Markdown works in MDX. There's no downside to using MDX for files that don't currently need components; you can sprinkle them in later. Most teams start with plain Markdown-flavored MDX and graduate to embedded components when they have a clear use case. The template handles both indistinguishably."
+        },
+        {
+          "q": "Will MDX slow down my build?",
+          "a": "MDX adds a small parsing cost per file (typically 5-20ms per article). For blogs with hundreds of posts, you'll notice a few seconds added to the build. For typical sizes (under 50 posts), the cost is invisible. The runtime cost is zero — MDX is compiled to plain HTML at build time and served as static files."
+        },
+        {
+          "q": "Can I use React components in MDX?",
+          "a": "Yes, via Astro's React integration (`npx astro add react`). The template doesn't ship with React enabled (to keep the dependency tree light), but enabling it is one command. Once enabled, you can import React components and use them inside MDX files. They'll be server-rendered or hydrated based on the `client:` directive you use."
+        },
+        {
+          "q": "How does this compare to MDX in Next.js?",
+          "a": "Functionally similar — same MDX syntax, same component import patterns. Astro's MDX is typically faster at build time because Astro defaults to zero JavaScript on the client. Next.js MDX ships React runtime to the client even for static content; Astro doesn't unless you opt in. For content-heavy sites, Astro's MDX yields lighter pages by default."
+        }
+      ],
+      "ctaCopy": "MDX is on by default in the free template. Clone, write your first MDX-enhanced post, and ship before the weekend ends.",
+      "related": ["with-tags-categories", "with-search", "developer-blog", "technical-writer"]
+    },
+    {
+      "slug": "with-rss-feed",
+      "category": "feature",
+      "h1": "Astro Blog Template with RSS Feed",
+      "metaTitle": "Astro Blog Template with RSS Feed | ClaudeStack",
+      "metaDescription": "Auto-generated RSS feed in your Astro blog. Categories, dates, descriptions. 100/100 Lighthouse. Free on GitHub or Pro at $49.",
+      "primaryKeyword": "astro blog template rss",
+      "intro": "RSS isn't dead — it's just less visible. Every serious technical reader has a feed reader (Feedly, NetNewsWire, Inoreader, Miniflux), and most developer blogs that ship RSS see 2-5x the recurring readership of those that don't. ClaudeStack ships RSS by default, generated from your blog collection, with proper categories, dates, and descriptions. Subscribers see new posts in their reader hours before anyone notices on social media. The feed validates against the RSS 2.0 spec and renders correctly in every major reader. Setting it up is zero effort — write content, the feed updates. If you want recurring readers rather than just one-time search traffic, RSS is the cheapest investment you can make.",
+      "useCases": [
+        "Building a recurring audience that doesn't depend on social-media algorithms. Subscribers see every post; algorithm-driven readers see whatever the feed surfaces this week.",
+        "Cross-posting to newsletter services (Buttondown, Beehiiv) that consume RSS — write once on your blog, your newsletter auto-publishes from the feed.",
+        "Plugging into Slack channels via RSS-to-Slack apps. Your team sees new posts as they ship; no manual sharing required."
+      ],
+      "features": [
+        "RSS 2.0 spec-compliant, validated by W3C feed validator",
+        "Per-item categories, tags, pub dates, descriptions",
+        "@astrojs/rss handles the generation — battle-tested package",
+        "Self-discovered by feed readers (link rel='alternate' in HTML head)",
+        "Demo articles excluded automatically — feed only carries real content"
+      ],
+      "faq": [
+        {
+          "q": "Will RSS still bring me readers in 2026?",
+          "a": "Yes — the active feed-reader population is small but high-quality. RSS subscribers are typically senior developers, technical writers, and other content creators who deliberately curate their information diet. The conversion rate from RSS subscribers to engaged readers is dramatically higher than from social media traffic. The audience is small but loyal."
+        },
+        {
+          "q": "How do I let readers know I have RSS?",
+          "a": "The template includes an RSS link in the footer and a `<link rel='alternate'>` in the HTML head. Modern feed readers auto-discover the feed when readers paste your blog URL. Some sites also add a visible RSS icon in the header for easier discovery. The template's design ships without one to keep the chrome clean, but adding one is a 5-minute edit."
+        },
+        {
+          "q": "Can I include full article content in RSS or just excerpts?",
+          "a": "Both are possible. The default is to include the description (frontmatter `description` field) plus the auto-generated excerpt. To include full content, modify the RSS generator config in `src/pages/rss.xml.ts` to use `article.body` instead of just the description. Full content reduces clickthrough to your site but improves reader experience; the tradeoff depends on whether you monetize via page views."
+        },
+        {
+          "q": "Does RSS work for podcasts or just blogs?",
+          "a": "RSS is the format podcast publishers use too. The template's RSS generator is configured for blog content, but adapting it to podcast feeds (adding `<enclosure>` tags for audio files) is straightforward. The pattern is documented in @astrojs/rss's docs. For a multi-content-type site, you can also generate multiple feeds (one for posts, one for episodes)."
+        }
+      ],
+      "ctaCopy": "RSS ships in the free version — generated automatically from your posts. Subscribe to your own feed and see how clean it looks.",
+      "related": ["with-mdx-support", "with-sitemap", "open-source-maintainer", "developer-blog"]
+    },
+    {
+      "slug": "with-dark-mode",
+      "category": "feature",
+      "h1": "Astro Blog Template with Dark Mode",
+      "metaTitle": "Astro Blog Template with Dark Mode | ClaudeStack",
+      "metaDescription": "An Astro blog template with first-class dark mode — the dark theme IS the design. 100/100 Lighthouse. Free on GitHub or Pro at $49.",
+      "primaryKeyword": "astro blog template dark mode",
+      "intro": "Most templates add dark mode as a feature; ClaudeStack treats the dark theme as the design. The whole site was built dark-first — every color was chosen on a black background, every contrast ratio was tested in dim conditions, every component was tuned for evening reading. The result is a dark mode that doesn't feel like an inverted afterthought; it feels like the natural state of the site. The Pro version adds two additional dark variants (amber, cyan) with a visible switcher, but every variant is fundamentally dark. If your audience reads at night (and most developer audiences do), this is the template that doesn't make them squint at 11pm.",
+      "useCases": [
+        "Blogs whose readers consume content in the evening or in dim work environments. Dark-first means no eye strain when reading at length.",
+        "Sites where you want a strong visual identity without the maintenance cost of supporting both light and dark themes. Pick one, do it well.",
+        "Sites with lots of code or terminal-output screenshots, which blend naturally with dark backgrounds rather than punching holes of white into your articles."
+      ],
+      "features": [
+        "Dark-first color system — not an inverted light theme",
+        "Multiple shades of background (#000 / #0A0A0A / #111 / #1A1A1A) for layering",
+        "Body text at 16.1:1 contrast against bg — exceeds WCAG AAA",
+        "Code blocks default to github-dark (Shiki) — match dark IDE themes",
+        "OS-level color scheme is explicitly ignored — site is always dark"
+      ],
+      "faq": [
+        {
+          "q": "Should I add a light mode toggle for users who want it?",
+          "a": "Maybe not. Adding a light mode toggle doubles design and testing effort (every component must work in both modes). It also fragments your visual identity. Most developer audiences strongly prefer dark; the small fraction who want light usually have OS-level dark-mode-disable they can use anyway. The Pro version adds a switcher between three dark variants instead, which satisfies the 'I want choice' instinct."
+        },
+        {
+          "q": "Does the template respect the user's OS color-scheme preference?",
+          "a": "Intentionally no. The template hardcodes the dark theme via `<html data-theme='terminal'>`. This is opinionated — your blog's identity shouldn't shift based on visitor OS settings. If you want OS-following, change the inline script in BaseLayout to check `window.matchMedia('(prefers-color-scheme: light)')` and switch accordingly. It's a 5-line change."
+        },
+        {
+          "q": "How does the dark mode perform on OLED screens?",
+          "a": "Optimally. The pure black background means OLED pixels are actually off, saving battery on phones and tablets. The contrast against light text is the highest possible while staying easy on the eyes. On modern OLED iPhones, the template looks meaningfully better than on LCD — the blacks have depth, the greens feel alive."
+        },
+        {
+          "q": "Can I switch the dark palette without breaking the design?",
+          "a": "Yes — all colors live in CSS variables in `src/styles/themes.css`. Change `--color-bg` from `#000` to `#0E1116` (GitHub-style dark) and every component adapts. The Pro variants (amber, cyan) demonstrate the range of dark palettes the template's architecture supports."
+        }
+      ],
+      "ctaCopy": "Free version ships dark-first by default. Upgrade to Pro for three dark variants with a live switcher.",
+      "related": ["terminal-aesthetic", "monospace-typography", "developer-focused-design", "with-mdx-support"]
+    },
+    {
+      "slug": "with-sitemap",
+      "category": "feature",
+      "h1": "Astro Blog Template with Sitemap",
+      "metaTitle": "Astro Blog Template with Sitemap | ClaudeStack",
+      "metaDescription": "An Astro blog template with automatic sitemap.xml generation. Google Search Console-ready. 100/100 Lighthouse. Free on GitHub or Pro at $49.",
+      "primaryKeyword": "astro blog template sitemap",
+      "intro": "Sitemap.xml is the file Google reads to know which of your pages exist. Without one, Google crawls what it discovers via internal links; with one, you tell it explicitly: here are all my pages, including the ones you might not find on your own. ClaudeStack ships sitemap generation via @astrojs/sitemap, configured correctly out of the box. Every blog post, every category page, every tag page, every static route appears in the sitemap automatically. You don't think about it; you just keep writing. When you submit the sitemap URL to Google Search Console, indexing kicks in faster and more reliably than relying on Google's organic crawl alone.",
+      "useCases": [
+        "Any blog targeting Google traffic — sitemap submission is the standard first SEO step after launch. Without it, indexing is slower and incomplete.",
+        "Sites with many tag or category pages that won't be linked from the homepage. The sitemap ensures Google finds these long-tail pages even when they're not in the navigation.",
+        "Multi-author or multi-section sites where the navigation can't show every page. Sitemap = comprehensive map; navigation = curated highlights. Both matter."
+      ],
+      "features": [
+        "@astrojs/sitemap auto-generated on every build — no manual maintenance",
+        "Includes all dynamic routes (blog posts, category pages, tag pages)",
+        "Excludes draft content automatically (respects the `draft: true` flag)",
+        "Sitemap index file links to individual sitemaps for large sites (10,000+ URLs)",
+        "Last-modified dates included — helps Google prioritize freshly-updated content"
+      ],
+      "faq": [
+        {
+          "q": "How often does Google re-crawl after submitting the sitemap?",
+          "a": "Typically 3-14 days for the first full crawl. After that, Google re-checks the sitemap roughly weekly and crawls updated URLs based on freshness signals (the `<lastmod>` field). You can manually request re-indexing of specific URLs via Search Console for important updates. The template's sitemap auto-updates `<lastmod>` based on each article's `updatedDate`."
+        },
+        {
+          "q": "Do I need to ping Google when I publish?",
+          "a": "Not in 2026. Google deprecated the explicit sitemap ping endpoint. Now Google re-checks your sitemap on its own schedule. For urgent indexing of important new posts, use the URL Inspection tool in Search Console to request indexing manually — it's the only ping mechanism that still exists."
+        },
+        {
+          "q": "Will my robots.txt block the sitemap?",
+          "a": "Only if you explicitly disallow `/sitemap-index.xml` or the URLs it lists, which would be unusual. The template's default robots.txt allows everything and explicitly points to the sitemap location. As long as you don't customize robots.txt to block crawling, the sitemap works as intended."
+        },
+        {
+          "q": "Can I exclude certain pages from the sitemap?",
+          "a": "Yes. The @astrojs/sitemap config accepts a `filter` function that lets you exclude routes by URL pattern. The template uses this to exclude `/demo/*` paths from the sitemap (since demo content is `noindex` anyway). For your own exclusions, edit `astro.config.mjs` and add the routes you want hidden from search engines."
+        }
+      ],
+      "ctaCopy": "Free version generates a sitemap automatically. Submit it to Google Search Console after your first deploy.",
+      "related": ["with-rss-feed", "with-search", "developer-blog", "open-source-maintainer"]
+    },
+    {
+      "slug": "with-search",
+      "category": "feature",
+      "h1": "Astro Blog Template with Full-Text Search",
+      "metaTitle": "Astro Blog Template with Search | ClaudeStack",
+      "metaDescription": "Static full-text search via Pagefind in your Astro blog. No backend, no Algolia subscription. 100/100 Lighthouse. Free on GitHub or Pro at $49.",
+      "primaryKeyword": "astro blog template search",
+      "intro": "Search on a static site used to mean either no search at all or an Algolia subscription. ClaudeStack uses Pagefind — a fully static search engine that builds its index from your generated HTML and runs entirely in the visitor's browser. No backend, no API key, no monthly subscription, no rate limits. The index gets generated as part of your build step; visitors download a small chunk on demand when they start typing. Search is instant and accurate, with results that match technical terms (camelCase, snake_case, dot.notation) the way developers expect. For most blogs, this is the right answer for the next decade.",
+      "useCases": [
+        "Blogs with 30+ articles where readers want to find specific topics fast. Pagefind handles this scale effortlessly with no infrastructure cost.",
+        "Reference-style content (tutorials, runbooks, deep-dives) where readers often search instead of browse. The search UI is small and unobtrusive — sits on the blog index page, ready when needed.",
+        "Multi-language sites (Pagefind supports per-language indexes). Each language gets its own index, with proper stopword handling and stemming."
+      ],
+      "features": [
+        "Pagefind static search — runs entirely client-side, no backend required",
+        "Index built automatically as part of `npm run build` (chained in package.json)",
+        "Supports highlighted excerpts in results — readers see the matching context",
+        "~50KB total index size for a 30-post blog — minimal payload",
+        "Respects content collection boundaries — searches blog only, not demo articles"
+      ],
+      "faq": [
+        {
+          "q": "How does Pagefind compare to Algolia?",
+          "a": "Algolia is stronger for very large sites (10,000+ pages), faceted search, and complex ranking customization. Pagefind is stronger for blogs and documentation sites under 5,000 pages — same result quality, zero backend cost, no monthly subscription. For most personal and small-team blogs, Pagefind is the right answer; you'll never grow into a need for Algolia."
+        },
+        {
+          "q": "Does search work in dev mode?",
+          "a": "Pagefind only generates its index during the production build, so the search component shows a graceful fallback message in dev (`// search index not built yet — run npm run build first`). To preview search locally, run `npm run build && npm run preview` instead of `npm run dev`. The search will work against the built index."
+        },
+        {
+          "q": "Can I customize how search results look?",
+          "a": "Yes. The `SearchBox.astro` component is the entire UI — about 100 lines, all editable. Results render as anchor tags with title + excerpt; styling lives in `global.css` under `.search-result-*` classes. The Pagefind API returns rich data (full text, meta, anchors) that you can use to build any UI you want."
+        },
+        {
+          "q": "Is search results ranking accurate for technical terms?",
+          "a": "Yes. Pagefind tokenizes content with awareness of camelCase, snake_case, and other technical conventions. Searching for `useEffect` matches the term even if it appears inside `useEffect()`. Searching for `event-loop` matches both `event-loop` and `event loop` variants. Results are ranked by term frequency and title-vs-body weighting (titles count more)."
+        }
+      ],
+      "ctaCopy": "Pagefind ships in the free version. After your next build, visit /blog and try the search — it's already working.",
+      "related": ["with-tags-categories", "with-sitemap", "developer-blog", "technical-writer"]
+    },
+    {
+      "slug": "with-newsletter",
+      "category": "feature",
+      "h1": "Astro Blog Template with Newsletter Integration",
+      "metaTitle": "Astro Blog Template with Newsletter | ClaudeStack",
+      "metaDescription": "Astro blog template with Buttondown / ConvertKit / EmailOctopus integration. No backend required. 100/100 Lighthouse. Free or Pro $49.",
+      "primaryKeyword": "astro blog template newsletter",
+      "intro": "Newsletter capture is the single most reliable growth lever for blog content. Social platforms decide who sees what; email is yours to keep, forever, regardless of algorithm changes. ClaudeStack ships with provider-agnostic newsletter integration — Buttondown, ConvertKit, EmailOctopus, or none. The form embeds directly via the provider's official embed endpoint, so there's no backend code to write and no API keys to manage. The Newsletter component shows up wherever you place it (home page is the default), and the design is consistent with the rest of the template's terminal aesthetic. If you want growth, this is the cheapest investment you can make.",
+      "useCases": [
+        "Solo bloggers building a direct audience independent of social platforms. Newsletter subscribers are 5-10x more engaged than social followers.",
+        "Indie hackers using newsletter as the primary distribution for launch announcements. Subscribers convert to customers at higher rates than cold traffic.",
+        "Open source maintainers announcing releases to a captive audience that opted in. Better signal-to-noise than tweeting into the void."
+      ],
+      "features": [
+        "Provider-agnostic — set your provider in siteConfig, no code changes",
+        "Buttondown: no-JS form embed, works without API key",
+        "ConvertKit: integrates with their form ID system",
+        "EmailOctopus: same pattern, embedded endpoint",
+        "Graceful 'newsletter coming soon' placeholder when no provider is configured"
+      ],
+      "faq": [
+        {
+          "q": "Which newsletter provider should I pick?",
+          "a": "For developer audiences, Buttondown is the cleanest choice — built by a developer, supports Markdown email composition, fair pricing, no upsell pressure. ConvertKit is more featured (automation, segments, sequences) but priced for businesses with $1k+/mo budgets. EmailOctopus is the cheapest at scale. Start with Buttondown if you're under 1,000 subscribers; revisit at growth."
+        },
+        {
+          "q": "Can I capture emails without a third-party service?",
+          "a": "Not without a backend. Email collection requires storing the address somewhere, handling unsubscribes (legally required), and complying with anti-spam regulations. The cheapest 'no third-party' option is a Cloudflare Worker that writes to KV storage, but you still need to handle the legal compliance manually. For 99% of blogs, using a newsletter service is the right tradeoff."
+        },
+        {
+          "q": "Will the form work without JavaScript enabled?",
+          "a": "Yes — the Buttondown integration uses form POST to their endpoint with no JavaScript required. The form submits, opens a confirmation in a new window (no-JS fallback), and the user sees the standard 'please confirm your email' message. ConvertKit and EmailOctopus integrations require minimal JavaScript for inline confirmation but degrade gracefully without it."
+        },
+        {
+          "q": "Can I A/B test newsletter copy?",
+          "a": "Not natively — the template renders a single form. For A/B testing, the standard approach is to deploy two variants (different branches, different Cloudflare deploys) and use a feature flag service to route visitors between them. For a static site, A/B testing newsletter copy is usually overkill — pick one good headline, ship it, iterate based on signup rate over months."
+        }
+      ],
+      "ctaCopy": "Free version ships newsletter-ready. Set your Buttondown username in config and ship — that's the whole setup.",
+      "related": ["indie-hacker", "startup-founder", "with-rss-feed", "engineering-manager"]
+    },
+    {
+      "slug": "with-comments",
+      "category": "feature",
+      "h1": "Astro Blog Template with Comments",
+      "metaTitle": "Astro Blog Template with Comments | ClaudeStack",
+      "metaDescription": "Astro blog template ready for Giscus or Disqus comments. Drop-in integration. 100/100 Lighthouse. Free on GitHub or Pro at $49.",
+      "primaryKeyword": "astro blog template comments",
+      "intro": "Comments on a developer blog can either be a community asset or a moderation nightmare. ClaudeStack is built to handle both ends well: the template ships with a comments placeholder that drops in Giscus (GitHub Discussions-backed) or Disqus with one component swap. Giscus is the typical choice for developer audiences — comments live in your GitHub Discussions tab, moderation uses the same tools you already use for issue triage, and spam is dramatically reduced because commenters need a GitHub account. The integration is lightweight (loads on demand, doesn't impact Lighthouse), and respects the dark theme so comments don't visually clash with the rest of the site.",
+      "useCases": [
+        "Technical blogs where the audience already has GitHub accounts. Giscus removes the friction of yet another signup, and discussions stay in your project's ecosystem.",
+        "Tutorial sites where readers ask follow-up questions. Comments below each tutorial give the author one place to address the most common confusion points.",
+        "Open source project blogs where discussions about a post should feed back into the project. Giscus comments are GitHub Discussions; they're already in the project's communication channels."
+      ],
+      "features": [
+        "Giscus integration component — drops in with one config block",
+        "Disqus fallback — for sites whose audience prefers it",
+        "Comments load on demand — no impact on initial page load metrics",
+        "Dark theme by default — matches the template's visual style",
+        "Comments component can be disabled per article via frontmatter"
+      ],
+      "faq": [
+        {
+          "q": "Should I enable comments on a developer blog?",
+          "a": "Depends on the volume you're willing to moderate. For low-traffic blogs, comments add minimal noise and meaningful engagement. For high-traffic blogs, comments become a moderation tax — spam, off-topic tangents, hostile responses. Many established developer blogs have abandoned comments and direct discussion to social media or RSS-based readers instead. Start with comments enabled; turn them off if moderation becomes the bottleneck."
+        },
+        {
+          "q": "Why Giscus over Disqus?",
+          "a": "Giscus is free (Disqus shows ads on the free tier), comments live in your GitHub Discussions tab (Disqus owns the data), spam is much rarer (GitHub auth filters most bots), and the UI is lighter weight. The only Disqus advantage is that it doesn't require visitors to have a GitHub account. For developer-targeted blogs, that's not a real disadvantage."
+        },
+        {
+          "q": "Can I disable comments on specific posts?",
+          "a": "Yes. The frontmatter accepts a `comments: false` field. When set, the Comments component returns null and no discussion thread renders. Useful for announcement posts or short updates where discussion would be off-topic noise."
+        },
+        {
+          "q": "Will comments hurt my Lighthouse score?",
+          "a": "Not if loaded properly. The template's integration loads Giscus only after the page is interactive (using IntersectionObserver to defer until the comments section scrolls into view). Initial page load metrics stay clean; the comments embed loads when the user reaches them. Lighthouse measures initial load, so the score stays at 100."
+        }
+      ],
+      "ctaCopy": "Free version ships with the comments placeholder. Wire your Giscus repo in one config edit and ship.",
+      "related": ["with-newsletter", "developer-blog", "open-source-maintainer", "engineering-manager"]
+    },
+    {
+      "slug": "with-tags-categories",
+      "category": "feature",
+      "h1": "Astro Blog Template with Tags and Categories",
+      "metaTitle": "Astro Blog Template with Tags & Categories | ClaudeStack",
+      "metaDescription": "An Astro blog template with auto-generated tag and category pages. Scales to hundreds of posts. 100/100 Lighthouse. Free on GitHub or Pro at $49.",
+      "primaryKeyword": "astro blog template tags categories",
+      "intro": "Tags and categories are the two ways readers navigate a growing archive. Categories are broad (`essay`, `pattern`, `guide`) and chosen by you per post; tags are granular (`postgres`, `claude-code`, `docker`) and accumulate as your archive grows. ClaudeStack auto-generates a page for every unique tag and category in your content, listing the articles that use them, with consistent design. Add a tag to a frontmatter; a tag page appears at `/tags/your-tag` on the next build. Categories work identically at `/categories/your-category`. The pattern scales to hundreds of articles without manual maintenance — your archive organizes itself.",
+      "useCases": [
+        "Growing blogs (50+ posts) where readers want to filter to a specific topic. Tag pages give them an entry point without requiring you to manually curate.",
+        "Multi-topic blogs where readers may only care about one slice. Categories let them subscribe to (or browse) just `tutorials` without seeing your opinion essays.",
+        "Reference content where the same article belongs to multiple topical slices. Tags handle this overlap naturally — one article, many tags, appears on multiple tag pages."
+      ],
+      "features": [
+        "Tag pages auto-generated at /tags/[tag] for every unique tag",
+        "Category pages at /categories/[category] for the three built-in categories",
+        "Tag clouds and category lists render from the actual content (no manual lists)",
+        "Tags and categories appear in sitemap.xml — Google indexes the archive surface",
+        "Schema.org markup includes keywords from tags — helps with topical relevance signals"
+      ],
+      "faq": [
+        {
+          "q": "What's the difference between tags and categories?",
+          "a": "Categories are a fixed set you define (the template ships with `essay`, `pattern`, `guide`). Every post belongs to exactly one category. Tags are open-ended — add any tag you want in the frontmatter, and a page is auto-generated for it. Categories are for broad structural organization; tags are for granular topical filtering. Most posts have one category and 3-5 tags."
+        },
+        {
+          "q": "Can I rename or reorganize tags later?",
+          "a": "Yes — tags live in the frontmatter of each article. To rename a tag, find-and-replace across your content collection (the template's Pagefind index will rebuild automatically). For URL preservation, add a redirect in `public/_redirects` from `/tags/old-name` to `/tags/new-name`. The template's _redirects file is already structured to make this easy."
+        },
+        {
+          "q": "Will having many tag pages hurt SEO (thin content)?",
+          "a": "It can, if individual tag pages have only 1-2 posts. The template's tag pages list every matching article with full description excerpts, which usually pushes them past the 'thin content' threshold. For tags with very few posts, consider consolidating into broader tags or using the noindex meta (the template makes this configurable). Monitor Google Search Console for any low-quality tag pages."
+        },
+        {
+          "q": "Can I show tag clouds or 'popular tags' on the homepage?",
+          "a": "Yes. The pattern is to read all tags from the content collection at build time and render a sorted list, with most-used tags larger. The template doesn't ship a tag-cloud component (it's stylistically dated), but the data is available — about 20 lines of Astro to build one if you want it. Most modern blogs just list categories in the nav and let search handle granular discovery."
+        }
+      ],
+      "ctaCopy": "Tags and categories are already on in the free version. Add a `tags` field to your next post and watch the tag page appear.",
+      "related": ["with-mdx-support", "with-search", "developer-blog", "technical-writer"]
+    },
+    {
+      "slug": "astro-tailwind-template",
+      "category": "tech",
+      "h1": "Astro + Tailwind Blog Template",
+      "metaTitle": "Astro Tailwind CSS Blog Template | ClaudeStack",
+      "metaDescription": "An Astro 6 blog template using Tailwind CSS 4 (CSS-first, Lightning CSS engine). 100/100 Lighthouse. Free on GitHub or Pro at $49.",
+      "primaryKeyword": "astro tailwind template",
+      "intro": "Astro and Tailwind CSS are the dominant stack for content-focused sites in 2026: Astro for the static-first rendering and zero-JS-by-default approach, Tailwind for the utility-first styling that scales without bloat. ClaudeStack uses Tailwind 4 — the version with the new Lightning CSS engine, ten times faster than v3 and configured entirely in CSS rather than a JavaScript config file. The template uses Tailwind for utility classes alongside hand-written CSS for the design system; the result is a maintainable codebase where common spacing/sizing comes from Tailwind and bespoke component styles live in `global.css`. Best of both worlds, no fighting between conventions.",
+      "useCases": [
+        "Teams already using Tailwind elsewhere — the conventions transfer cleanly. New contributors don't have to learn a different styling approach.",
+        "Solo developers who want utility-first styling without manually maintaining a design token system. Tailwind handles the spacing scale, color tokens, and breakpoints.",
+        "Projects where you want zero-config CSS-in-JS, no Sass, no custom build steps. Tailwind 4's Lightning CSS engine does it all in one fast pass."
+      ],
+      "features": [
+        "Tailwind CSS 4 with Lightning CSS engine — 10x faster than v3",
+        "CSS-first config (no tailwind.config.js to maintain)",
+        "@apply still works for component classes when you need them",
+        "Theme tokens via CSS variables, consumable by Tailwind via arbitrary values",
+        "Tree-shaken automatically — unused utilities never ship to production"
+      ],
+      "faq": [
+        {
+          "q": "Do I need to write Tailwind, or can I write regular CSS?",
+          "a": "Both work, side by side. The template uses Tailwind utilities in components where it's natural (margin, padding, flex layouts) and hand-written CSS in `global.css` for design-system styles (colors, typography, themes). You can write any new component in pure CSS, pure Tailwind, or a mix. There's no enforced convention — pick what fits the component."
+        },
+        {
+          "q": "Will the bundled CSS get huge with all these utilities?",
+          "a": "No — Tailwind tree-shakes aggressively. Only utilities you actually reference in your template files end up in the build. A typical ClaudeStack site ships about 30-50KB of CSS, including all Tailwind utilities used. The build process scans your Astro/MDX files and includes only the classes referenced."
+        },
+        {
+          "q": "How does Tailwind 4 differ from Tailwind 3?",
+          "a": "Three major changes. (1) Configuration moved from JS to CSS — your design tokens live in CSS variables, not a `tailwind.config.js`. (2) Lightning CSS replaced PostCSS for processing — faster builds. (3) Better composition with `@theme` for declaring design tokens that Tailwind utilities consume. Most v3 sites can migrate to v4 with minor CSS adjustments."
+        },
+        {
+          "q": "Can I add Tailwind plugins like Typography or Forms?",
+          "a": "Yes — Tailwind plugins still work in v4. Install via npm, import in your CSS via `@plugin '@tailwindcss/typography'`. The template doesn't ship with these enabled by default to keep the dependency tree light, but they're documented as opt-in additions in the Pro docs."
+        }
+      ],
+      "ctaCopy": "The free version of ClaudeStack ships with Tailwind 4 already configured. Clone, write, deploy — no setup overhead.",
+      "related": ["astro-typescript-template", "astro-mdx-template", "developer-blog", "with-mdx-support"]
+    },
+    {
+      "slug": "astro-mdx-template",
+      "category": "tech",
+      "h1": "Astro + MDX Blog Template",
+      "metaTitle": "Astro MDX Blog Template | ClaudeStack",
+      "metaDescription": "An Astro 6 blog template with first-class MDX — Markdown plus embedded components. 100/100 Lighthouse. Free on GitHub or Pro at $49.",
+      "primaryKeyword": "astro mdx template",
+      "intro": "MDX is the killer feature for technical blogs: write Markdown for prose, drop in Astro or React components when you need interactivity, embed code snippets that render with proper syntax highlighting. ClaudeStack uses @astrojs/mdx (the official integration) configured as the default content format. Every post is an `.mdx` file; every component in `src/components/` is importable directly into post content. The frontmatter is typed via Zod so your IDE catches schema errors. Syntax highlighting comes from Shiki with the github-dark theme. The combination is the most ergonomic way to write technical content in 2026 — Markdown's brevity, JSX's flexibility, TypeScript's safety, all in one file format.",
+      "useCases": [
+        "Tutorial sites with interactive demos. Drop a `<CodeSandbox>` or custom interactive component into MDX prose to show the concept in action.",
+        "Documentation that needs structured callouts, comparison tables, or version-specific tabs. MDX makes these first-class instead of requiring inline HTML.",
+        "Multi-author technical blogs where consistent layout matters. MDX components ensure every author renders code blocks, callouts, and warnings the same way."
+      ],
+      "features": [
+        "@astrojs/mdx official integration, actively maintained",
+        "Shiki syntax highlighting in all code fences (200+ languages)",
+        "Frontmatter typed via Zod — schema errors caught at build, not runtime",
+        "Import any Astro component directly into MDX (no special syntax)",
+        "Astro 6 + MDX 5 — current stable versions"
+      ],
+      "faq": [
+        {
+          "q": "Why MDX instead of plain Markdown?",
+          "a": "MDX is a superset of Markdown — anything that works in plain Markdown works in MDX. The difference is MDX lets you embed components when needed. There's no downside to starting in plain Markdown-flavored MDX and adding components later as use cases emerge. The template handles both indistinguishably; the file extension is `.mdx` either way."
+        },
+        {
+          "q": "Can I use React components in MDX?",
+          "a": "Yes — install `@astrojs/react` and React components can be imported into MDX files. The template doesn't ship with React enabled (to keep the bundle clean), but enabling it is `npx astro add react`. Once added, you choose per-component whether they hydrate client-side via the `client:` directives."
+        },
+        {
+          "q": "How does Astro's MDX compare to Next.js MDX?",
+          "a": "Functionally similar — same syntax, same import patterns. Astro's MDX is typically faster to build (Astro's island architecture is lighter than Next's server components). Astro's MDX defaults to zero client-side JavaScript; Next.js ships React runtime even for static content. For content-heavy sites, Astro's MDX yields lighter pages out of the box."
+        },
+        {
+          "q": "Will MDX work for non-technical content?",
+          "a": "Yes — most MDX content is just enhanced Markdown. The component embedding is opt-in. Personal blogs, newsletter archives, and editorial sites use MDX successfully without ever embedding a component. The format gives you the option without forcing you to use it."
+        }
+      ],
+      "ctaCopy": "ClaudeStack is MDX-first by default. Clone, write your first .mdx, embed a component — it works.",
+      "related": ["astro-tailwind-template", "astro-typescript-template", "with-mdx-support", "technical-writer"]
+    },
+    {
+      "slug": "astro-typescript-template",
+      "category": "tech",
+      "h1": "Astro + TypeScript Blog Template",
+      "metaTitle": "Astro TypeScript Blog Template (Strict Mode) | ClaudeStack",
+      "metaDescription": "An Astro 6 blog template with TypeScript strict mode enabled. Typed frontmatter via Zod. 100/100 Lighthouse. Free on GitHub or Pro at $49.",
+      "primaryKeyword": "astro typescript template",
+      "intro": "TypeScript on a blog template is overkill until the moment you make your first mistake — a renamed frontmatter field that quietly broke five pages, a typo in a tag that creates a phantom tag-page, an import path that worked locally but failed in CI. ClaudeStack ships with TypeScript strict mode enabled by default, frontmatter typed via Zod, and content collections that surface schema errors at build time. The result: most of the silly mistakes get caught before the site ships, and refactoring (renaming components, restructuring data) is dramatically less scary. For solo developers it's nice; for teams it's load-bearing.",
+      "useCases": [
+        "Teams where multiple people contribute. TypeScript catches the schema-drift mistakes that would otherwise show up in production.",
+        "Solo developers who want refactoring safety. Renaming a frontmatter field becomes a one-step refactor; missing references surface immediately in the editor.",
+        "Long-lived blogs where the codebase evolves over years. Type checks catch outdated assumptions when dependencies change or components are restructured."
+      ],
+      "features": [
+        "TypeScript strict mode — no any, no implicit returns, no loose types",
+        "Frontmatter schema enforced via Zod (runtime + type-level validation)",
+        "Astro's content collection types auto-generated from your schema",
+        "VSCode autocomplete on every frontmatter field, every component prop",
+        "tsconfig.json extends astro/tsconfigs/strict — the most rigorous standard"
+      ],
+      "faq": [
+        {
+          "q": "Do I need to be fluent in TypeScript to use this?",
+          "a": "No. Most users write articles in MDX (just Markdown plus frontmatter), and never touch TypeScript directly. The template's TypeScript usage is in the framework code (components, layouts, route handlers), which you typically don't modify. When you do customize, the editor's autocomplete and inline errors guide you — TypeScript is more helpful than annoying for non-experts."
+        },
+        {
+          "q": "Will strict mode cause friction when adding components?",
+          "a": "Some, especially if you're used to non-strict JavaScript. The most common friction point is component props — strict mode requires explicit types. The template's existing components are examples to copy from. Once you've added 2-3 components yourself, the pattern feels natural. The catch-mistakes-early benefit outweighs the typing-overhead cost."
+        },
+        {
+          "q": "Can I run TypeScript checks as part of CI?",
+          "a": "Yes — `npx astro check` runs the full TypeScript check (plus Astro-specific checks like template syntax). Add it to your GitHub Actions workflow as a required check before merging. Most contributors discover this after their first PR breaks the build because of a type error; running checks locally before pushing becomes the default afterward."
+        },
+        {
+          "q": "Does TypeScript add to the bundle size?",
+          "a": "No. TypeScript compiles to JavaScript at build time; the runtime bundle contains no TypeScript-specific code. The type annotations and runtime checks via Zod do add slight build-time overhead (typically 200-500ms on a 50-post blog), but no runtime cost. Lighthouse performance scores are unaffected."
+        }
+      ],
+      "ctaCopy": "TypeScript strict is on by default in the free template. Get type-safe content collection from your first post.",
+      "related": ["astro-tailwind-template", "astro-mdx-template", "astro-cloudflare-template", "developer-blog"]
+    },
+    {
+      "slug": "astro-cloudflare-template",
+      "category": "tech",
+      "h1": "Astro + Cloudflare Blog Template",
+      "metaTitle": "Astro Cloudflare Pages Blog Template | ClaudeStack",
+      "metaDescription": "An Astro blog template designed to deploy on Cloudflare Pages / Workers. Zero hosting cost. 100/100 Lighthouse. Free on GitHub or Pro at $49.",
+      "primaryKeyword": "astro cloudflare template",
+      "intro": "Cloudflare Pages (now part of Cloudflare Workers static assets) is the cheapest and fastest way to host a static blog: global CDN, unlimited bandwidth, free tier that covers any non-viral blog, automatic HTTPS, zero cold-start latency. ClaudeStack is configured for this exact stack — `wrangler.jsonc` tells Cloudflare to deploy as static assets, `_redirects` handles URL migrations, the build script chains Pagefind so search works in production. Connect a GitHub repo to Cloudflare Pages, push, and the site is live in 60 seconds. No DevOps, no server bills, no surprise charges if a post goes viral.",
+      "useCases": [
+        "Solo developers who want a blog that costs less than coffee. Cloudflare's free tier handles 99% of blogs forever.",
+        "Indie hackers who want to deploy a blog alongside their product without adding infrastructure complexity. Cloudflare handles both at scale.",
+        "Open source maintainers who want zero hosting overhead. Sponsors don't have to fund a hosting bill that grows with project popularity."
+      ],
+      "features": [
+        "wrangler.jsonc pre-configured for static-asset-only deploy",
+        "public/_redirects file ready for 301s when you reorganize URLs",
+        "Build chain works on Cloudflare's CI (Node 22, npm, fast deploys)",
+        "Cloudflare Web Analytics integration ready (one config edit)",
+        "Custom domain trivially configured via Cloudflare Registrar"
+      ],
+      "faq": [
+        {
+          "q": "Pages or Workers — which should I use?",
+          "a": "Cloudflare is unifying both under Workers with static assets. The template uses the Workers static-assets pattern (the newer one). For pure-static sites like a blog, both Pages and Workers static-assets behave identically. Workers-with-static-assets is the recommended path going forward; Pages is in maintenance mode."
+        },
+        {
+          "q": "What's the cost ceiling for a viral post?",
+          "a": "Effectively zero. Cloudflare's free tier on Workers includes 100,000 requests per day per project, with unlimited bandwidth. A blog post that goes mildly viral (50k-200k visits in a day) still falls within free tier. Even sustained popular sites typically stay under the paid tier threshold. You'd need to be Notion-scale to hit serious billing."
+        },
+        {
+          "q": "Will my custom domain work easily?",
+          "a": "Yes. If you buy the domain through Cloudflare Registrar (the cheapest registrar — no markup over wholesale), DNS auto-configures. Other registrars require a one-line nameserver change. Custom Domains in the Workers dashboard takes about 30 seconds to set up; HTTPS provisions automatically within minutes."
+        },
+        {
+          "q": "Can I deploy elsewhere too?",
+          "a": "Yes. The template makes no Cloudflare-specific assumptions in the application code. Vercel, Netlify, GitHub Pages, even self-hosted via nginx — all work with `npm run build` outputting to `dist/`. The Cloudflare-specific files (`wrangler.jsonc`, `_redirects`) are ignored by other hosts. You can deploy to multiple targets simultaneously if you want."
+        }
+      ],
+      "ctaCopy": "Deploy free in 60 seconds: clone, connect to Cloudflare, push. The hosting cost stays at zero forever.",
+      "related": ["astro-typescript-template", "astro-tailwind-template", "astro-mdx-template", "developer-blog"]
+    }
+  ]
+}

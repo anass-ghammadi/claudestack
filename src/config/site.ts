@@ -52,6 +52,7 @@ export const siteConfig = {
         title: 'Shop',
         links: [
           { label: 'Template (Pro)', href: '/pricing' },
+          { label: 'All template variants', href: '/templates' },
           { label: 'GitHub (free)', href: 'https://github.com/anass-ghammadi/claudestack' },
         ],
       },

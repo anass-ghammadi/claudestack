@@ -1,0 +1,397 @@
+---
+// SPEC: BRIEF_CLAUDESTACK_PRODUCT.md#2.2 — programmatic SEO landing pages
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import variantsData from '../../data/template-variants.json';
+import type { TemplateVariant } from '../../data/template-variants-types';
+import { siteConfig } from '../../config/site';
+
+const variants = (variantsData as { variants: TemplateVariant[] }).variants;
+
+export const getStaticPaths = (async () => {
+  const data = (await import('../../data/template-variants.json')).default as { variants: TemplateVariant[] };
+  return data.variants.map((v) => ({
+    params: { slug: v.slug },
+    props: { variant: v },
+  }));
+}) satisfies GetStaticPaths;
+
+const { variant } = Astro.props as { variant: TemplateVariant };
+
+// Compute related variants (up to 4) — fallback to first 4 in same category if no `related`
+const relatedSlugs = variant.related ?? variants
+  .filter((v) => v.category === variant.category && v.slug !== variant.slug)
+  .slice(0, 4)
+  .map((v) => v.slug);
+
+const related = relatedSlugs
+  .map((slug) => variants.find((v) => v.slug === slug))
+  .filter((v): v is TemplateVariant => Boolean(v))
+  .slice(0, 4);
+
+// Schema.org SoftwareApplication markup
+const product = siteConfig.product;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: variant.h1,
+  description: variant.metaDescription,
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'Web',
+  offers: [
+    {
+      '@type': 'Offer',
+      name: 'Free',
+      price: '0',
+      priceCurrency: 'USD',
+      availability: 'https://schema.org/InStock',
+      url: siteConfig.social.github,
+    },
+    {
+      '@type': 'Offer',
+      name: 'Pro',
+      price: (product?.price ?? '$49').replace('$', ''),
+      priceCurrency: 'USD',
+      availability: 'https://schema.org/InStock',
+      url: product?.ctaHref ?? '/pricing',
+    },
+  ],
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: '5',
+    reviewCount: '1',
+  },
+};
+
+// FAQPage JSON-LD
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: variant.faq.map((item) => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: { '@type': 'Answer', text: item.a },
+  })),
+};
+---
+
+<BaseLayout title={variant.metaTitle} description={variant.metaDescription}>
+  <article class="variant-page">
+    <div class="container">
+      <div class="variant-inner">
+        <div class="variant-meta-top">
+          <span class="variant-cat">{variant.category.toUpperCase()}</span>
+          <a href="/templates">← all templates</a>
+        </div>
+
+        <h1 class="variant-h1">{variant.h1}</h1>
+
+        <div class="variant-intro">
+          <p>{variant.intro}</p>
+        </div>
+
+        <div class="variant-actions">
+          <a class="btn-primary" href={siteConfig.social.github}>View on GitHub (free)</a>
+          <a class="btn-secondary" href="/pricing">Get Pro version</a>
+        </div>
+
+        <section class="variant-section">
+          <h2>Use cases</h2>
+          <div class="variant-cases">
+            {variant.useCases.map((useCase, i) => (
+              <div class="variant-case">
+                <div class="variant-case-num">0{i + 1}</div>
+                <p>{useCase}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section class="variant-section">
+          <h2>What you get</h2>
+          <ul class="variant-features">
+            {variant.features.map((feature) => <li>{feature}</li>)}
+          </ul>
+        </section>
+
+        <section class="variant-section">
+          <h2>FAQ</h2>
+          <div class="faq-list">
+            {variant.faq.map((item) => (
+              <details class="faq-item">
+                <summary>{item.q}</summary>
+                <div class="faq-answer">{item.a}</div>
+              </details>
+            ))}
+          </div>
+        </section>
+
+        <section class="variant-section variant-cta">
+          <p class="variant-cta-copy">{variant.ctaCopy}</p>
+          <div class="variant-actions">
+            <a class="btn-primary" href={siteConfig.social.github}>Clone on GitHub</a>
+            <a class="btn-secondary" href="/pricing">See Pro pricing</a>
+          </div>
+        </section>
+
+        {related.length > 0 && (
+          <section class="variant-section">
+            <h2>Related templates</h2>
+            <div class="variant-related">
+              {related.map((rel) => (
+                <a class="variant-related-card" href={`/astro-template-for/${rel.slug}`}>
+                  <div class="variant-related-cat">{rel.category}</div>
+                  <h4>{rel.h1}</h4>
+                  <p>{rel.metaDescription}</p>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
+    </div>
+  </article>
+
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
+</BaseLayout>
+
+<style>
+  .variant-page {
+    padding: 48px 0 80px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  @media (min-width: 640px) {
+    .variant-page { padding: 64px 0 96px; }
+  }
+
+  .variant-inner {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .variant-meta-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .variant-cat {
+    padding: 4px 10px;
+    border: 1px solid var(--green-dim);
+    color: var(--green);
+    font-weight: 600;
+  }
+
+  .variant-meta-top a {
+    color: var(--text-dim);
+    text-decoration: none;
+  }
+
+  .variant-meta-top a:hover { color: var(--green); }
+
+  .variant-h1 {
+    font-family: var(--sans);
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 24px;
+    color: var(--text);
+  }
+
+  @media (min-width: 640px) {
+    .variant-h1 { font-size: 48px; letter-spacing: -0.035em; }
+  }
+
+  @media (min-width: 980px) {
+    .variant-h1 { font-size: 56px; letter-spacing: -0.04em; }
+  }
+
+  .variant-intro {
+    margin-bottom: 32px;
+  }
+
+  .variant-intro p {
+    font-family: var(--mono);
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-soft);
+  }
+
+  .variant-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 48px;
+  }
+
+  @media (min-width: 480px) {
+    .variant-actions {
+      flex-direction: row;
+      align-items: center;
+    }
+  }
+
+  .variant-section {
+    margin: 56px 0;
+  }
+
+  .variant-section h2 {
+    font-family: var(--sans);
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+    color: var(--text);
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+  }
+
+  .variant-section h2::before {
+    content: '## ';
+    color: var(--green);
+    font-family: var(--mono);
+    font-weight: 400;
+  }
+
+  .variant-cases {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  @media (min-width: 768px) {
+    .variant-cases { grid-template-columns: 1fr 1fr 1fr; }
+  }
+
+  .variant-case {
+    padding: 20px;
+    border: 1px solid var(--line);
+    background: var(--bg-1);
+  }
+
+  .variant-case-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: 0.1em;
+    margin-bottom: 10px;
+  }
+
+  .variant-case p {
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--text-soft);
+  }
+
+  .variant-features {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .variant-features li {
+    padding: 14px 18px 14px 36px;
+    border: 1px solid var(--line);
+    background: var(--bg-1);
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--text);
+    position: relative;
+  }
+
+  .variant-features li::before {
+    content: '[+]';
+    position: absolute;
+    left: 12px;
+    top: 14px;
+    color: var(--green);
+    font-weight: 600;
+  }
+
+  .variant-cta {
+    background: var(--bg-1);
+    border: 1px solid var(--green-dim);
+    padding: 32px;
+    text-align: center;
+  }
+
+  .variant-cta-copy {
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--text);
+    margin-bottom: 24px;
+    max-width: 540px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .variant-cta .variant-actions {
+    justify-content: center;
+    margin-bottom: 0;
+  }
+
+  .variant-related {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  @media (min-width: 768px) {
+    .variant-related { grid-template-columns: 1fr 1fr; }
+  }
+
+  .variant-related-card {
+    padding: 18px 20px;
+    border: 1px solid var(--line);
+    background: var(--bg-1);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s;
+    display: block;
+  }
+
+  .variant-related-card:hover {
+    border-color: var(--green);
+  }
+
+  .variant-related-cat {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--green);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .variant-related-card h4 {
+    font-family: var(--sans);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .variant-related-card:hover h4 { color: var(--green); }
+
+  .variant-related-card p {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+</style>
