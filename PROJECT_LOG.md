@@ -7,7 +7,7 @@
 
 ## Current state (snapshot)
 
-**Status**: Phases 1 & 2 of product-packaging complete (pushed). Phase 3 (draft "How I built ClaudeStack" article) pending operator approval.
+**Status**: Phases 1, 2, and 3 of product-packaging brief all complete and pushed. Draft article "How I Built ClaudeStack" awaits Operator rewrite of marked TODO_ANASS sections before flipping to `draft: false`.
 
 | Item | Value |
 |---|---|
@@ -22,7 +22,7 @@
 | Themes | 3 (terminal default, amber, cyan) with switcher in header + mobile menu |
 | Programmatic SEO pages | 30 at `/astro-template-for/[slug]` + `/templates` index |
 | Total HTML pages built | 85 |
-| Rollback branches | `pre-product-packaging`, `phase-1-complete`, `phase-2-complete` (all pushed) |
+| Rollback branches | `pre-product-packaging`, `phase-1-complete`, `phase-2-complete`, `phase-3-complete` (all pushed) |
 | Last pushed commit | Phase 2 (to be filled after push) |
 
 ---
@@ -165,6 +165,13 @@ Distribution: 6 essays / 3 patterns / 3 guides.
 ---
 
 ## Change history
+
+### 2026-05-21 — Phase 3 of product-packaging brief complete (pushed, draft state)
+- Wrote `src/content/blog/how-i-built-claudestack.mdx` (~2500 words written by me, ~270 words placeholder for operator rewrite)
+- Structure: hook (TODO_ANASS) → constraints with concrete numerical targets → tech stack walkthrough → design decisions → performance optimization with real Lighthouse numbers → what I'd do differently (TODO_ANASS) → CTA
+- `draft: true` — verified excluded from production build (`/blog/how-i-built-claudestack/` does not appear in dist or sitemap)
+- 2 sections explicitly marked with `{/* TODO_ANASS: ... */}` HTML comments — operator must rewrite before flipping draft to false
+- Brief Phase 3 done. All 3 phases of the product-packaging brief complete.
 
 ### 2026-05-21 — Phase 2 of product-packaging brief complete (pushed)
 - **2.1** Wrote `src/data/template-variants.json` with **30 unique variants** (~27,000 words of copy):

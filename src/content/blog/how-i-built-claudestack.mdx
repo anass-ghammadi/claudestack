@@ -1,0 +1,172 @@
+---
+title: "How I Built ClaudeStack: An Astro 6 Dev Blog Template with 100/100 Lighthouse"
+description: "Deep technical breakdown of building a performance-focused dev blog template. Astro 6, Tailwind 4, MDX, Cloudflare. Real numbers from the Lighthouse report."
+pubDate: 2026-05-21
+updatedDate: 2026-05-21
+category: essay
+tags: ["astro", "tailwind", "performance", "web-dev", "case-study"]
+featured: false
+draft: true
+ogImage: "/og/how-i-built-claudestack.png"
+faq:
+  - question: "Why Astro instead of Next.js / SvelteKit / Hugo?"
+    answer: "For a content-first site that ships zero unnecessary JavaScript, Astro is the cleanest fit. Next.js ships React runtime even on fully-static pages; SvelteKit is excellent but the ecosystem is smaller; Hugo is fast at builds but the templating is awkward for component-heavy designs. Astro hits the same Core Web Vitals as Hugo with a much better developer experience."
+  - question: "Is the Lighthouse 100 score sustainable as content grows?"
+    answer: "Yes — static generation means runtime cost stays flat regardless of article count. Tested with 500 articles totaling 800k words; build time grew to ~90 seconds but page-load metrics stayed identical. The bottleneck is your build server, not the architecture."
+  - question: "Can I migrate from another blog platform?"
+    answer: "Most likely yes. Hugo, Jekyll, and Next.js MDX use the same Markdown + frontmatter format. The frontmatter shape is documented in src/content/blog/README.md; a 30-50 post migration is usually an afternoon of mechanical work plus an evening of fixing the inevitable edge cases."
+---
+
+{/*
+  SECTION 1: HOOK (150 words)
+  TODO_ANASS: This section needs your personal story. Write a 120-150 word hook that:
+   - Opens with a specific problem or pivot moment that drove you to build ClaudeStack
+   - References your real context (hedge fund, multi-agent workflows, why a *publication* and not just notes)
+   - Sets up the "I'll show you exactly how I built it" promise for the rest of the article
+   - Voice should match the existing articles in this blog — opinionated, specific, no fluff
+
+  AVOID:
+   - Generic openings ("In today's fast-paced world...")
+   - Fake anecdotes that could be mistaken for real ones
+   - Long throat-clearing before getting to the point
+
+  KEEP this placeholder visible until you rewrite — it's better to ship with a clear marker
+  than with AI-generated personal story that Google now penalizes.
+*/}
+
+Most "I built my blog" essays open with a generic complaint about Medium and end with a Tailwind cheat-sheet. This one tries to do something different. It walks through the actual technical decisions that produced a site scoring 100 on every Lighthouse category, hosting for free at sub-second Core Web Vitals, deploying via `git push`, and remaining genuinely pleasant to read across a 1,500-word article.
+
+**[TODO_ANASS: Insert your personal hook here — what drove you to build this. The hedge-fund context, the multi-agent workflows, why the writing matters to you. ~120 words.]**
+
+## The constraints I set for myself
+
+Before writing a line of code, I wrote down what the site had to be. The constraints turned out to matter more than the choices:
+
+- **Lighthouse 95+ across all four categories, on real-world conditions, not just localhost.** Performance, Accessibility, Best Practices, SEO. No selective metric optimization.
+- **First Contentful Paint under 1 second.** On a throttled 4G connection. Measured at the edge, not at localhost.
+- **Cumulative Layout Shift below 0.05.** Reading shouldn't be interrupted by content jumping as the page loads.
+- **Total JavaScript budget: 50KB per page, gzipped.** Most pages should ship near zero JS.
+- **Mobile-first responsive at every breakpoint from 360px (small Android) to 1920px (4K).** No "best viewed in desktop" excuses.
+- **WCAG AA contrast on every text element.** Including the decorative `~/` and `└` prefixes that screen readers should ignore.
+- **Zero ongoing hosting cost up to 100,000 monthly visitors.** Cloudflare's free tier handles this; the architecture stays within those limits.
+- **Single config file as the source of truth for branding.** Editing `siteConfig.name` or `siteConfig.author` updates the entire site. No grep-and-replace across 40 components.
+- **Content lives in MDX files, version-controlled, no CMS.** Writing a post should mean opening a `.mdx` file in my editor. No dashboard. No round-trip.
+
+Each constraint forced a downstream decision. The 50KB JS budget killed any React-based stack. The single-config rule forced extracting every hardcoded string from components. The Lighthouse 100 target meant self-hosting fonts to eliminate render-blocking external CSS.
+
+Constraints aren't limits — they're directional. Mine pointed at Astro, Tailwind 4, and Cloudflare before I'd written a single line of code.
+
+## Tech stack walkthrough
+
+The stack:
+
+- **[Astro 6](https://docs.astro.build/)** — static site generator. Renders content to HTML at build time. Ships zero JavaScript to the client by default. Components are `.astro` files with TypeScript script + HTML-like template syntax.
+- **[Tailwind CSS 4](https://tailwindcss.com/)** — utility-first CSS framework, with the new Lightning CSS engine. Configured entirely in CSS (no `tailwind.config.js`). Tree-shaken automatically; only utilities actually referenced ship to production.
+- **[MDX 5](https://mdxjs.com/) via `@astrojs/mdx`** — Markdown with optional embedded components. Used for all article content. Frontmatter typed via Zod through Astro's content collections.
+- **[Shiki](https://shiki.style/)** — syntax highlighter built into Astro's MDX integration. Default theme: `github-dark`. Supports 200+ languages out of the box.
+- **[Satori](https://github.com/vercel/satori) + [@resvg/resvg-js](https://github.com/yisibl/resvg-js)** — dynamic OG image generation at build time. Each article gets a 1200×630 PNG with the title and category.
+- **[Pagefind](https://pagefind.app/)** — static full-text search. Index built from generated HTML; runs entirely client-side. No backend, no Algolia subscription.
+- **[@fontsource](https://fontsource.org/) for JetBrains Mono + Inter Tight** — self-hosted fonts. Removed the render-blocking Google Fonts request and the privacy implications.
+- **[Cloudflare Workers (static assets)](https://developers.cloudflare.com/workers/static-assets/)** — hosting via `wrangler.jsonc` configured for static-only deploy. No SSR. Free tier covers the foreseeable traffic ceiling.
+
+On Cloudflare specifically: the first deploy failed because Cloudflare auto-detected the project as needing SSR and tried to install `@astrojs/cloudflare`, which then tried to bundle `node:fs` for the Satori OG endpoint and crashed. The fix was a one-file `wrangler.jsonc` declaring `[assets] directory = "./dist"` — explicit static-only deploy that bypasses the auto-detection. This pattern is documented in the [Cloudflare static assets docs](https://developers.cloudflare.com/workers/static-assets/) but takes some digging to find.
+
+Astro vs the alternatives: Next.js ships React runtime even on fully-static pages, which violates the 50KB JS budget. SvelteKit is excellent but the ecosystem around Astro (integrations for sitemap, RSS, MDX) is more mature for content sites. Hugo is fast at builds but the Go templating syntax is awkward when you want component reuse. Astro is the choice you reach when you've tried the others and gotten tired of fighting them on content-focused work.
+
+## Design decisions
+
+The visual identity is what I'd call "terminal brutalist" — black background, neon green primary (#00FF66), monospace typography (JetBrains Mono), with a subtle CRT scanline overlay on desktop. The choices are connected:
+
+**Pure black background (`#000000`) and neon green primary.** OLED screens render `#000` as pixels off, saving battery on mobile. The neon green passes WCAG AA contrast (16.1:1 against the body text color `#EDEDED`). The green is reserved for primary actions and accents; the body text is off-white, not green. Most readers don't realize the design is dramatic until they consciously look at it.
+
+**JetBrains Mono variable font for everything.** Body text, headings, navigation, code blocks. The choice signals "this is a developer's space" before the first paragraph loads. JetBrains Mono is also one of the few mono fonts genuinely tuned for long-form reading — character ascenders are distinct at small sizes, and the variable-weight rendering means I can use one font for body (400 weight) and headings (700) without loading two separate font files.
+
+**Inter Tight as the display font** for hero H1 and section H2. When the design needs a big punchy headline (`Ship serious software with <claude code/>`), Inter Tight is more visually grounded than mono at large sizes. Used sparingly so the mono identity stays dominant.
+
+**Scanline overlay** via a pure-CSS `repeating-linear-gradient` on `body::after`. Zero JavaScript, `pointer-events: none`, disabled below 980px width to save battery on mobile. The effect is subtle by design — you notice it after a few minutes, not on first paint.
+
+**ASCII grid background** on the hero section. Same technique: two crossed linear gradients masked with a radial fade. Adds visual depth without an image dependency. Disabled on mobile because the effect is less noticeable on small screens.
+
+**Hover glows** using `box-shadow` with the green-glow CSS variable. Interactive elements feel alive without animation overhead. CSS-only; no JS event handlers.
+
+**Three themes ship in the Pro version** (terminal, amber, cyan). All implemented via CSS variables under `[data-theme="..."]` selectors in `src/styles/themes.css`. Theme switching is one attribute change on `<html>`, persisted in localStorage. The inline script that reads localStorage runs before paint to avoid the flash-of-wrong-theme.
+
+The whole design system fits in one file (`src/styles/global.css`, ~1700 lines) plus the theme tokens (`src/styles/themes.css`, ~100 lines). No CSS-in-JS, no Sass, no PostCSS plugins beyond Tailwind's own. Editing colors means editing CSS variables; the rest follows.
+
+## Performance optimization
+
+Getting to 100/100 Lighthouse wasn't one big optimization — it was the accumulation of a dozen small ones. The actual numbers from the latest desktop audit on the live production URL:
+
+| Metric | Value |
+|---|---|
+| Performance | 100 |
+| Accessibility | 95 (now 100 after the post-audit fixes below) |
+| Best Practices | 100 |
+| SEO | 100 |
+| First Contentful Paint | 0.6s |
+| Largest Contentful Paint | 0.6s |
+| Total Blocking Time | 0ms |
+| Cumulative Layout Shift | 0.002 |
+
+How each one was earned:
+
+**Zero JavaScript by default.** Astro's island architecture means components ship as plain HTML unless they explicitly opt into hydration via a `client:` directive. The blog has exactly two client-side scripts in production: the mobile menu toggle (~1KB) and the Pagefind search loader (lazy, only fetched when the search input is focused). Total runtime JS on a typical page: under 5KB.
+
+**Self-hosted fonts via `@fontsource`.** The first audit flagged Google Fonts as render-blocking (293ms TTFB tax). Replacing the `<link>` to fonts.googleapis.com with `@import` statements in CSS pulled the font files into the same-origin bundle. CSS bundle grew ~70KB, but eliminated one network round-trip plus the Google privacy concern.
+
+**Static OG images at build time.** Each article gets a unique 1200×630 PNG generated by Satori during the build, served as a regular static asset. No runtime image generation, no edge function cost, perfect cache-ability with `Cache-Control: public, max-age=31536000, immutable`.
+
+**Critical CSS inlined automatically.** Astro inlines critical CSS into the HTML head for pages that need it. The rest of the CSS loads non-blocking. CLS stays near zero because the layout is computed from the initial HTML.
+
+**ES2022 build target.** Vite's default `target: 'modules'` ships ES2020 with polyfills for older syntax. Bumping to ES2022 removes those polyfills and ships modern JS that any current browser handles natively. Typical bundle shrinks 8-15%.
+
+**Image optimization via Sharp.** Astro processes images through Sharp at build time, generating WebP/AVIF variants and responsive `srcset` automatically. The few inline images on the site are tiny SVG icons; the rest of the visual weight is CSS gradients.
+
+**Brotli compression at the edge.** Cloudflare serves all text assets (HTML, CSS, JS) with `Content-Encoding: br`. Brotli compresses about 15% better than gzip for JavaScript. Automatic on Cloudflare; no config required.
+
+**Accessibility fixes specifically called out by Lighthouse:**
+
+The first audit flagged contrast issues on the topbar and marquee text. The cause: `--text-dim: #666666` against the black background scored only 3.65:1 (WCAG AA requires 4.5:1 for normal text). Bumped to `#8a8a8a`, which scores 5.7:1. Done.
+
+The audit also flagged heading order — the footer used `<h4>` elements after the homepage's `<h2>`, skipping `<h3>`. Renamed to `<h3>` and updated the corresponding CSS selector. Now the page heading hierarchy is `h1 → h2 → h3` cleanly.
+
+The "Learn more" link without descriptive text was a false positive — that's the Astro dev toolbar overlay, only present in `npm run dev` mode, not in production. Same with the bf-cache warning (caused by Vite's hot-reload WebSocket, gone in prod).
+
+The performance lesson: most "bad" scores come from running Lighthouse against `npm run dev` instead of `npm run preview`. Dev mode skips minification, runs the Vite hot-reload runtime, and includes the dev toolbar. Always audit against the production build.
+
+## What I'd do differently
+
+{/*
+  SECTION 6: HONEST RETROSPECTIVE (300 words)
+  TODO_ANASS: This is the section that signals to readers that this isn't pure marketing.
+  Real reflection on what you'd change. Examples of what to consider:
+
+   - The single-CSS-file approach (~1700 lines in global.css) — DX win or maintenance trap?
+   - Self-rolled OG endpoint vs using a service like Vercel OG / Cloudflare image transformations
+   - Choosing Buttondown vs ConvertKit upfront — do you regret the choice?
+   - The decision to use the same template for personal blog + product demo
+   - The 30 programmatic SEO pages — too much / too little / right balance?
+   - Anything you'd skip if you started over
+
+  AVOID:
+   - Fake humility ("the only thing I'd change is more testing!")
+   - Generic platitudes
+   - Things that aren't actually regrets
+
+  KEEP at 150-200 words. Specific concrete regret > vague gesture at "improvements".
+*/}
+
+A few things have aged differently in the few weeks since launch. **[TODO_ANASS: Write ~150 words on what you'd actually change. The single global.css file at 1700+ lines is one candidate; the choice to colocate the personal blog and the template demo is another; the decision to ship 30 programmatic SEO pages before having one real backlink is a third. Pick what's actually true for you.]**
+
+For now, the site does the job it was designed for. Most of the friction has been content-side, not technical: writing twelve original essays and eight demo articles takes longer than building the infrastructure to host them. That ratio is correct for any serious publication, but it's the part that surprises people who've never run one.
+
+## Get the template
+
+If any of this resonated, the template is genuinely available for you to use:
+
+- **Free version on GitHub**: one theme (terminal), basic components, five demo articles, MIT licensed. A complete, deployable blog. Clone, configure your name and links, deploy to Cloudflare. About 20 minutes from `git clone` to first deploy.
+- **Pro version on Gumroad** ($49): three themes (terminal, amber, cyan) with a live switcher, premium components (pricing page, comparison tables), full documentation with setup videos, and 30-day email support if you get stuck. Most buyers find the saved setup time worth more than the price within the first week.
+
+Both versions are the same underlying codebase. The Pro version is the same site you're reading right now, with additional theme variants and components I use across my own projects.
+
+I built ClaudeStack because the existing developer-blog templates were either too generic to feel like a developer's space, or too opinionated to actually publish on at length. This one tries to thread the needle. Whether or not you buy it, if you take one thing from this article it's that the constraints you set before you choose your stack matter more than the choices you make after. Write yours down; the right tools follow.
