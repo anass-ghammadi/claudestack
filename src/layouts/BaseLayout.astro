@@ -18,6 +18,10 @@ interface Props {
 }
 
 const { title, description, ogImage, article, noindex } = Astro.props;
+// SPEC: BRIEF_ADDENDUM_LAUNCH_READY.md#2 — provider+token gating
+const analyticsEnabled =
+  siteConfig.analytics.provider === 'cloudflare' &&
+  siteConfig.analytics.cloudflareToken.length > 0;
 const analyticsToken = siteConfig.analytics.cloudflareToken;
 const gscToken = siteConfig.seo.googleSiteVerification;
 const isProd = import.meta.env.PROD;
@@ -44,7 +48,7 @@ const isProd = import.meta.env.PROD;
     </main>
     <Footer />
 
-    {isProd && analyticsToken && (
+    {isProd && analyticsEnabled && (
       <script
         defer
         src="https://static.cloudflareinsights.com/beacon.min.js"

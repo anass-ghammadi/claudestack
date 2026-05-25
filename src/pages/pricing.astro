@@ -1,70 +1,418 @@
 ---
-// SPEC: BRIEF_CLAUDESTACK_PRODUCT.md#1.3.d — placeholder pricing page (referenced from nav)
+// SPEC: BRIEF_ADDENDUM_LAUNCH_READY.md#3 — conversion-focused pricing page
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { siteConfig } from '../config/site';
 
 const product = siteConfig.product;
+const proPrice = product?.price ?? '$49';
+const proPriceNum = parseInt(proPrice.replace(/[^0-9]/g, ''), 10);
+const gumroadUrl = siteConfig.gumroadUrl;
+const discount = siteConfig.launchDiscount;
+
+// Schema.org Product + Offer
+const productSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: 'ClaudeStack Pro',
+  description:
+    'A production-ready Astro 6 blog template with 3 themes, premium components, full documentation, and 30-day email support. 100/100 Lighthouse out of the box.',
+  brand: { '@type': 'Brand', name: siteConfig.name },
+  offers: [
+    {
+      '@type': 'Offer',
+      name: 'Free',
+      price: '0',
+      priceCurrency: 'USD',
+      availability: 'https://schema.org/InStock',
+      url: siteConfig.social.github,
+    },
+    {
+      '@type': 'Offer',
+      name: 'Pro',
+      price: String(proPriceNum),
+      priceCurrency: 'USD',
+      availability: 'https://schema.org/InStock',
+      url: gumroadUrl,
+    },
+  ],
+};
+
+const comparisonRows = [
+  { feature: 'Themes', free: '1 (Terminal)', pro: '3 (Terminal, Amber, Cyan)' },
+  { feature: 'Live theme switcher', free: '—', pro: '✓' },
+  { feature: 'Demo articles', free: '5', pro: '8' },
+  { feature: 'MDX support', free: '✓', pro: '✓' },
+  { feature: 'RSS + Sitemap', free: '✓', pro: '✓' },
+  { feature: 'Dark mode (multiple variants)', free: '✓', pro: '✓' },
+  { feature: '100/100 Lighthouse', free: '✓', pro: '✓' },
+  { feature: 'Newsletter integration', free: 'Buttondown only', pro: 'Buttondown + ConvertKit + EmailOctopus' },
+  { feature: 'SEO programmatic pages system', free: '—', pro: '✓ (30 pre-built)' },
+  { feature: 'Full documentation', free: 'README', pro: 'Complete guides + video walkthroughs' },
+  { feature: 'Deploy guides (CF / Vercel / Netlify)', free: '—', pro: '✓' },
+  { feature: 'Email support', free: '—', pro: '30 days' },
+  { feature: 'Updates', free: 'Community', pro: 'Priority' },
+];
+
+const faqItems = [
+  {
+    q: 'What do I get with Pro?',
+    a: 'Three themes with a live switcher (Terminal, Amber, Cyan), 30 pre-built SEO programmatic landing pages, premium components (the pricing page, comparison tables, code-tabs), complete documentation with video walkthroughs, and 30 days of email support. Plus all the features in the Free version.',
+  },
+  {
+    q: 'Can I use it for client projects?',
+    a: `Yes. The Pro commercial license explicitly allows unlimited personal AND client projects. You can ship ClaudeStack-based sites to as many clients as you want without buying additional licenses. The only restriction is that you can't redistribute the template itself as a competing product. Full terms in <a href="https://github.com/anass-ghammadi/claudestack/blob/main/LICENSE-PRO.md">LICENSE-PRO.md</a>.`,
+  },
+  {
+    q: 'Do I need to know Astro to use it?',
+    a: 'No. You can ship your first post by editing the site config (one file) and dropping a Markdown file in src/content/blog/. Astro-specific knowledge is only needed if you want to customize the components themselves. The Pro version includes a setup video that gets you from clone to deployed in 15 minutes without prior Astro experience.',
+  },
+  {
+    q: 'How do I deploy it?',
+    a: 'The template is pre-configured for Cloudflare Workers (static assets) — connect your GitHub repo to Cloudflare Pages, push, and you\'re live. The Pro version includes deploy guides for Vercel, Netlify, and self-hosted Nginx as well. All three are documented step-by-step.',
+  },
+  {
+    q: "What's your refund policy?",
+    a: '14-day no-questions-asked refund. Email and you get the money back — no need to justify, no awkward "are you sure" emails. If the template doesn\'t fit your project for any reason, you have two weeks to decide.',
+  },
+  {
+    q: 'Do you offer support?',
+    a: '30 days of email support starting on your purchase date. Real human, focused on getting you unblocked. Reasonable response time (typically within 24 hours, often within a few). Beyond 30 days, GitHub Issues on the public repo remain available for community help.',
+  },
+];
 ---
 
-<BaseLayout title="Pricing" description="Free version on GitHub, Pro version with 3 themes and premium components.">
-  <section class="page-section">
+<BaseLayout
+  title="Pricing"
+  description={`ClaudeStack Pro — a production Astro blog template at ${proPrice}. Free version on GitHub.`}
+>
+  <section class="pricing-hero">
     <div class="container">
-      <div class="page-inner">
-        <div class="page-meta">pricing / two ways to get the template</div>
-        <h1 class="page-title">Pick your <span class="accent">tier</span>.</h1>
+      <h1>Ship your dev blog this weekend.</h1>
+      <p class="pricing-hero-sub">
+        A production-tested Astro 6 template with 100/100 Lighthouse, three themes, and 30 days of email support if you get stuck.
+      </p>
+      {discount.enabled && (
+        <div class="pricing-launch-banner">
+          <span class="pricing-launch-banner-tag">LAUNCH</span>
+          Use code <code>{discount.code}</code> for {discount.percentOff}% off Pro
+        </div>
+      )}
+    </div>
+  </section>
 
-        <div class="pricing-grid">
-          <div class="pricing-card">
-            <div class="pricing-card-meta">FREE · MIT</div>
-            <h2>Open source</h2>
-            <div class="pricing-card-price">$0</div>
-            <ul class="pricing-card-list">
-              <li>1 theme (terminal)</li>
-              <li>5 demo articles</li>
-              <li>Astro 6 + Tailwind 4 stack</li>
-              <li>RSS, sitemap, OG images</li>
-              <li>Community support (GitHub issues)</li>
-            </ul>
-            <a class="btn-secondary" href={siteConfig.social.github}>View on GitHub</a>
-          </div>
+  <section class="pricing-section">
+    <div class="container">
+      <h2 class="pricing-section-h2">Free vs Pro</h2>
 
-          <div class="pricing-card pricing-card-pro">
-            <div class="pricing-card-meta">PRO · LIFETIME</div>
-            <h2>Full template</h2>
-            <div class="pricing-card-price">
-              {product?.price ?? '$49'}
-              {product?.priceOld && <span class="pricing-card-price-old">{product.priceOld}</span>}
+      {/* Desktop comparison table */}
+      <div class="pricing-table-wrap">
+        <table class="pricing-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Free</th>
+              <th class="pricing-table-pro">Pro · {proPrice}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {comparisonRows.map((row) => (
+              <tr>
+                <td>{row.feature}</td>
+                <td class={row.free === '—' ? 'pricing-cell-no' : 'pricing-cell-yes'}>{row.free}</td>
+                <td class={row.pro === '—' ? 'pricing-cell-no' : 'pricing-cell-yes pricing-table-pro'}>{row.pro}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile stacked cards (alternative view) */}
+      <div class="pricing-stacked">
+        {comparisonRows.map((row) => (
+          <div class="pricing-stacked-row">
+            <div class="pricing-stacked-feature">{row.feature}</div>
+            <div class="pricing-stacked-values">
+              <div>
+                <span class="pricing-stacked-label">Free</span>
+                <span class={row.free === '—' ? 'pricing-cell-no' : 'pricing-cell-yes'}>{row.free}</span>
+              </div>
+              <div>
+                <span class="pricing-stacked-label">Pro</span>
+                <span class={row.pro === '—' ? 'pricing-cell-no' : 'pricing-cell-yes'}>{row.pro}</span>
+              </div>
             </div>
-            <ul class="pricing-card-list">
-              <li>3 themes (terminal, amber, cyan)</li>
-              <li>Live theme switcher</li>
-              <li>30 SEO programmatic landing pages</li>
-              <li>Full documentation + setup video</li>
-              <li>30-day email support</li>
-              <li>Lifetime updates</li>
-            </ul>
-            <a class="btn-primary" href={product?.ctaHref ?? '#'}>
-              {product?.ctaLabel ?? 'Get the template'}
-            </a>
           </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="pricing-section">
+    <div class="container">
+      <div class="pricing-cards">
+        <div class="pricing-card">
+          <div class="pricing-card-meta">FREE · MIT</div>
+          <h3>Open source</h3>
+          <div class="pricing-card-price">$0</div>
+          <ul class="pricing-card-list">
+            <li>1 theme (Terminal)</li>
+            <li>5 demo articles</li>
+            <li>MDX, RSS, sitemap, OG images</li>
+            <li>100/100 Lighthouse out of the box</li>
+            <li>Community support on GitHub</li>
+          </ul>
+          <a class="btn-secondary" href={siteConfig.social.github}>Get on GitHub</a>
+        </div>
+
+        <div class="pricing-card pricing-card-pro">
+          <div class="pricing-card-meta">PRO · LIFETIME</div>
+          <h3>Full template</h3>
+          <div class="pricing-card-price">
+            {proPrice}
+            {discount.enabled && (
+              <span class="pricing-card-discount">−{discount.percentOff}% with <code>{discount.code}</code></span>
+            )}
+          </div>
+          <ul class="pricing-card-list">
+            <li>3 themes (Terminal, Amber, Cyan) + live switcher</li>
+            <li>30 SEO programmatic landing pages</li>
+            <li>Premium components (pricing, comparisons, code-tabs)</li>
+            <li>Complete docs + video walkthroughs</li>
+            <li>30-day email support</li>
+            <li>Lifetime updates · 14-day refund</li>
+          </ul>
+          <a class="btn-primary" href={gumroadUrl} rel="noopener">Get Pro</a>
         </div>
       </div>
     </div>
   </section>
+
+  <section class="pricing-section">
+    <div class="container">
+      <h2 class="pricing-section-h2">FAQ</h2>
+      <div class="faq-list">
+        {faqItems.map((item) => (
+          <details class="faq-item">
+            <summary>{item.q}</summary>
+            <div class="faq-answer" set:html={item.a}></div>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="pricing-section pricing-final-cta">
+    <div class="container">
+      <div class="pricing-final-cta-inner">
+        <h2>Ready to ship?</h2>
+        <p>30-day email support · 14-day refund · Lifetime updates</p>
+        <div class="pricing-final-actions">
+          <a class="btn-primary" href={gumroadUrl} rel="noopener">Get Pro — {proPrice}</a>
+          <a class="btn-secondary" href={siteConfig.social.github}>Start free on GitHub</a>
+        </div>
+        <div class="pricing-final-links">
+          <a href="/demo">See it live →</a>
+          <a href="/astro-template-for/developer-blog">For developer blogs</a>
+          <a href="/astro-template-for/ai-engineer">For AI engineers</a>
+          <a href="/astro-template-for/indie-hacker">For indie hackers</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script type="application/ld+json" set:html={JSON.stringify(productSchema)} />
 </BaseLayout>
 
 <style>
-  .pricing-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 24px;
-    margin-top: 32px;
+  .pricing-hero {
+    padding: 64px 0 40px;
+    border-bottom: 1px solid var(--line);
+    text-align: center;
+  }
+
+  @media (min-width: 640px) {
+    .pricing-hero { padding: 96px 0 64px; }
+  }
+
+  .pricing-hero h1 {
+    font-family: var(--sans);
+    font-size: 40px;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+    color: var(--text);
+    margin-bottom: 20px;
+  }
+
+  @media (min-width: 640px) {
+    .pricing-hero h1 { font-size: 56px; letter-spacing: -0.04em; }
+  }
+
+  @media (min-width: 980px) {
+    .pricing-hero h1 { font-size: 72px; }
+  }
+
+  .pricing-hero-sub {
+    font-family: var(--mono);
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--text-soft);
+    max-width: 540px;
+    margin: 0 auto 28px;
+  }
+
+  .pricing-launch-banner {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 18px;
+    border: 1px solid var(--green-dim);
+    background: var(--bg-1);
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .pricing-launch-banner-tag {
+    padding: 2px 8px;
+    background: var(--green);
+    color: var(--bg);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+  }
+
+  .pricing-launch-banner code {
+    padding: 2px 6px;
+    background: var(--bg-2);
+    border: 1px solid var(--line-bright);
+    color: var(--green);
+    font-family: var(--mono);
+  }
+
+  .pricing-section {
+    padding: var(--section-pad) 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .pricing-section-h2 {
+    font-family: var(--sans);
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--text);
+    margin-bottom: 32px;
+    text-align: center;
+  }
+
+  @media (min-width: 640px) {
+    .pricing-section-h2 { font-size: 36px; }
+  }
+
+  /* === Comparison table === */
+  .pricing-table-wrap {
+    display: none;
+    border: 1px solid var(--line);
+    overflow-x: auto;
   }
 
   @media (min-width: 768px) {
-    .pricing-grid {
-      grid-template-columns: 1fr 1fr;
-    }
+    .pricing-table-wrap { display: block; }
+  }
+
+  .pricing-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+
+  .pricing-table th,
+  .pricing-table td {
+    padding: 14px 18px;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .pricing-table th {
+    background: var(--bg-2);
+    color: var(--text-soft);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .pricing-table th.pricing-table-pro,
+  .pricing-table td.pricing-table-pro {
+    background: var(--bg-1);
+    color: var(--text);
+  }
+
+  .pricing-table th.pricing-table-pro {
+    color: var(--green);
+  }
+
+  .pricing-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .pricing-cell-yes { color: var(--text); }
+  .pricing-cell-no { color: var(--text-faint); }
+
+  /* === Mobile stacked === */
+  .pricing-stacked {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--line);
+  }
+
+  @media (min-width: 768px) {
+    .pricing-stacked { display: none; }
+  }
+
+  .pricing-stacked-row {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+
+  .pricing-stacked-row:last-child { border-bottom: none; }
+
+  .pricing-stacked-feature {
+    color: var(--text);
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .pricing-stacked-values {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    font-size: 12px;
+  }
+
+  .pricing-stacked-label {
+    display: block;
+    color: var(--text-dim);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  /* === Pricing cards === */
+  .pricing-cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  @media (min-width: 768px) {
+    .pricing-cards { grid-template-columns: 1fr 1fr; }
   }
 
   .pricing-card {
@@ -89,9 +437,9 @@ const product = siteConfig.product;
     text-transform: uppercase;
   }
 
-  .pricing-card h2 {
+  .pricing-card h3 {
     font-family: var(--sans);
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--text);
@@ -99,20 +447,28 @@ const product = siteConfig.product;
 
   .pricing-card-price {
     font-family: var(--sans);
-    font-size: 40px;
+    font-size: 42px;
     font-weight: 700;
     letter-spacing: -0.03em;
     color: var(--green);
     line-height: 1;
   }
 
-  .pricing-card-price-old {
+  .pricing-card-discount {
+    display: block;
     font-family: var(--mono);
-    font-size: 15px;
-    color: var(--text-faint);
-    text-decoration: line-through;
-    margin-left: 10px;
-    vertical-align: top;
+    font-size: 12px;
+    color: var(--text-soft);
+    font-weight: 400;
+    letter-spacing: 0;
+    margin-top: 8px;
+  }
+
+  .pricing-card-discount code {
+    color: var(--green);
+    background: var(--bg-2);
+    padding: 1px 6px;
+    border: 1px solid var(--line-bright);
   }
 
   .pricing-card-list {
@@ -127,7 +483,7 @@ const product = siteConfig.product;
   }
 
   .pricing-card-list li {
-    padding-left: 18px;
+    padding-left: 22px;
     position: relative;
   }
 
@@ -144,4 +500,63 @@ const product = siteConfig.product;
     margin-top: 8px;
     align-self: flex-start;
   }
+
+  /* === Final CTA === */
+  .pricing-final-cta {
+    background: var(--bg-1);
+  }
+
+  .pricing-final-cta-inner {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .pricing-final-cta h2 {
+    font-family: var(--sans);
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+
+  .pricing-final-cta p {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-soft);
+    margin-bottom: 28px;
+  }
+
+  .pricing-final-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+
+  @media (min-width: 480px) {
+    .pricing-final-actions {
+      flex-direction: row;
+      justify-content: center;
+    }
+  }
+
+  .pricing-final-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px 24px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .pricing-final-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+  }
+
+  .pricing-final-links a:hover { color: var(--green); }
 </style>

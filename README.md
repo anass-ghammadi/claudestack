@@ -140,4 +140,6 @@ This project is ready to deploy. Steps:
 
 ## License
 
-All rights reserved.
+The Free version (this repository) is released under the [MIT License](./LICENSE). Use it for personal, client, or commercial projects — modify freely, no attribution required (though appreciated).
+
+A separate **Pro version** is available for purchase. It includes additional themes, premium components, full documentation, and email support. The Pro version ships under its own commercial license, [LICENSE-PRO.md](./LICENSE-PRO.md). Find it on Gumroad: <https://gumroad.com/l/claudestack>.

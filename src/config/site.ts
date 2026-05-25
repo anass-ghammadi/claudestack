@@ -124,9 +124,21 @@ export const siteConfig = {
   },
 
   // === ANALYTICS ===
+  // SPEC: BRIEF_ADDENDUM_LAUNCH_READY.md#2 — provider-gated beacon injection.
+  // If provider === 'none' or token is empty, NO beacon is injected.
   analytics: {
-    // Get from: dash.cloudflare.com → Analytics & Logs → Web Analytics → Add a site
+    provider: 'cloudflare' as 'cloudflare' | 'none',
+    // Get from: dash.cloudflare.com → Analytics & Logs → Web Analytics → Add a site → copy token
     cloudflareToken: '',
+  },
+
+  // === GUMROAD ===
+  // SPEC: BRIEF_ADDENDUM_LAUNCH_READY.md#3 — all Pro CTAs read from here.
+  gumroadUrl: 'https://gumroad.com/l/claudestack',
+  launchDiscount: {
+    enabled: true,
+    code: 'LAUNCH20',
+    percentOff: 20,
   },
 
   // === PRODUCT (homepage ProductCard) ===

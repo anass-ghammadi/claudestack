@@ -7,7 +7,7 @@
 
 ## Current state (snapshot)
 
-**Status**: Phases 1, 2, and 3 of product-packaging brief all complete and pushed. Draft article "How I Built ClaudeStack" awaits Operator rewrite of marked TODO_ANASS sections before flipping to `draft: false`.
+**Status**: Product-packaging brief (3 phases) + launch-ready-polish addendum (4 items) all complete and pushed. Site is sellable; awaits Operator action on TODO_ANASS sections in the flagship article, Cloudflare beacon token paste, and Gumroad listing creation.
 
 | Item | Value |
 |---|---|
@@ -22,7 +22,7 @@
 | Themes | 3 (terminal default, amber, cyan) with switcher in header + mobile menu |
 | Programmatic SEO pages | 30 at `/astro-template-for/[slug]` + `/templates` index |
 | Total HTML pages built | 85 |
-| Rollback branches | `pre-product-packaging`, `phase-1-complete`, `phase-2-complete`, `phase-3-complete` (all pushed) |
+| Rollback branches | `pre-product-packaging`, `phase-{1,2,3}-complete`, `pre-launch-polish`, `launch-ready-complete` (all pushed) |
 | Last pushed commit | Phase 2 (to be filled after push) |
 
 ---
@@ -165,6 +165,12 @@ Distribution: 6 essays / 3 patterns / 3 guides.
 ---
 
 ## Change history
+
+### 2026-05-25 — Launch-ready polish addendum complete (pushed)
+- **Item 1 — Licensing**: MIT `LICENSE` at root (free version), `LICENSE-PRO.md` (plain-language commercial license with CAN/CANNOT sections, refund policy, support window). README updated to reference both.
+- **Item 2 — Analytics**: `siteConfig.analytics` extended to `{ provider, cloudflareToken }` shape. BaseLayout beacon now gated on `provider === 'cloudflare' && token.length > 0` — empty token = no beacon (prevents template buyers from accidentally tracking to Anass's account). Also added `siteConfig.gumroadUrl` + `launchDiscount` toggle.
+- **Item 3 — Pricing page**: Full rebuild of `/pricing` — hero, 13-row Free vs Pro comparison (desktop table + mobile stacked view), pricing cards with launch discount banner, 6-item FAQ, Schema.org Product+Offer markup, final CTA with internal links to /demo + 3 top SEO variants.
+- **Item 4 — 404 + empty states**: 404 page polished — dynamic path shown in terminal prompt (`cd /badpath → No such file or directory`), expanded link list (Home, Blog, Demo, Pricing, About). Empty state audit confirmed graceful handling on `/blog` (empty collection), search box (no results / no index built), and tag pages (structurally cannot empty by SSG design).
 
 ### 2026-05-21 — Phase 3 of product-packaging brief complete (pushed, draft state)
 - Wrote `src/content/blog/how-i-built-claudestack.mdx` (~2500 words written by me, ~270 words placeholder for operator rewrite)

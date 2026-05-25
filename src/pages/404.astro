@@ -1,12 +1,13 @@
 ---
+// SPEC: BRIEF_ADDENDUM_LAUNCH_READY.md#4 — branded 404, on-theme, links back to key pages
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
-<BaseLayout title="404" description="Page not found.">
+<BaseLayout title="404 — page not found" description="The page you requested doesn't exist on this filesystem." noindex>
   <section class="notfound">
     <div class="container">
       <div class="notfound-inner">
-        <div class="notfound-status">cat /var/log/missing.log</div>
+        <div class="notfound-status">cd {Astro.url.pathname} → No such file or directory</div>
         <h1><span class="accent">ERROR</span> 404</h1>
         <p class="notfound-msg">
           <span class="comment"># the page you requested was not found in this filesystem.</span><br />
@@ -18,8 +19,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <div class="notfound-suggestions">
           <div class="notfound-suggestions-head">suggestions.txt</div>
           <a href="/">return to home</a>
-          <a href="/blog">browse the archive</a>
-          <a href="/categories/essays">read recent essays</a>
+          <a href="/blog">browse the blog</a>
+          <a href="/demo">try the template demo</a>
+          <a href="/pricing">see pricing</a>
           <a href="/about">about this site</a>
         </div>
       </div>
